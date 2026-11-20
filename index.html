@@ -1,0 +1,3575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Bible Study Workspace</title>
+    <!-- 폰트 라인업: 수트, 고운돋움, 나눔명조, 주아, 개구쟁이 + 추가(나눔붓글씨, IBM Plex Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;600&family=Jua&family=Nanum+Brush+Script&family=Nanum+Myeongjo:wght@700&family=SUIT:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --panel-bg: #ffffff;
+            --surface-soft: #f8fafc;
+            --input-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --border-subtle: rgba(15, 23, 42, 0.07);
+            --primary: #1e293b;
+            --primary-soft: #334155;
+            --accent: #64748b;
+            --brand: #2563eb;
+            --kor-color: #0f172a;
+            --eng-color: #475569;
+            --text-muted: #64748b;
+            --ui-btn: #334155;
+            --ui-btn-hover: #1e293b;
+            --pill-track: #e2e8f0;
+            --pill-fill: #334155;
+            --thumb-grid-bg: #e2e8f0;
+            --palette-gap-bg: rgba(255, 255, 255, 0.8);
+            --dock-bg: rgba(255, 255, 255, 0.94);
+            --scrollbar-thumb: rgba(100, 116, 139, 0.28);
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        /* 전역 다크모드 테마 변수 */
+        body.app-dark {
+            --bg-color: #0f141e;
+            --panel-bg: #171d29;
+            --surface-soft: #1f2736;
+            --input-bg: #131823;
+            --border-color: #2b3548;
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --primary: #111622;
+            --primary-soft: #263145;
+            --accent: #94a3b8;
+            --brand: #3b82f6;
+            --kor-color: #f8fafc;
+            --eng-color: #cbd5e1;
+            --text-muted: #94a3b8;
+            --ui-btn: #2c384f;
+            --ui-btn-hover: #3b4b69;
+            --pill-track: #273144;
+            --pill-fill: #60a5fa;
+            --thumb-grid-bg: #111622;
+            --palette-gap-bg: #111622;
+            --dock-bg: rgba(23, 29, 41, 0.94);
+            --scrollbar-thumb: rgba(148, 163, 184, 0.25);
+            --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.32);
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        /* 세련된 슬림 스크롤바 공통 */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'SUIT', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', 'Segoe UI', sans-serif;
+            display: flex;
+            height: 100vh;
+            height: 100dvh;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            color: var(--kor-color);
+            transition: background-color 0.22s ease, color 0.22s ease;
+        }
+
+        /* ==========================================
+           사이드바 (PC 기본 / 태블릿·가로 드로어 / 모바일 바텀시트)
+           ========================================== */
+        #sidebar {
+            width: 304px;
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 14px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 2px 0 14px rgba(15, 23, 42, 0.05);
+            z-index: 40;
+            flex-shrink: 0;
+            transition: margin-left 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+                        background-color 0.22s ease, border-color 0.22s ease;
+        }
+        #sidebar.collapsed {
+            margin-left: -304px;
+        }
+
+        .sheet-handle-wrap {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 8px 0 10px 0;
+            margin: -6px -16px 0 -16px;
+            cursor: grab;
+            flex-shrink: 0;
+            touch-action: none;
+        }
+        .sheet-handle {
+            width: 44px;
+            height: 4.5px;
+            border-radius: 99px;
+            background: #94a3b8;
+            opacity: 0.6;
+        }
+
+        #mobile-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 35;
+            opacity: 0;
+            transition: opacity 0.22s ease;
+        }
+        #mobile-backdrop.visible {
+            display: block;
+            opacity: 1;
+        }
+
+        /* PC 사이드바 접힘 레일 */
+        #collapsed-rail {
+            width: 52px;
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding-top: 14px;
+            flex-shrink: 0;
+            z-index: 25;
+            box-shadow: 2px 0 8px rgba(15, 23, 42, 0.03);
+            transition: background-color 0.22s ease, border-color 0.22s ease;
+        }
+
+        .rail-icon-btn {
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.16s ease, color 0.16s ease;
+        }
+        .rail-icon-btn:hover { background: var(--border-color); }
+        #expand-sidebar-btn {
+            background: var(--ui-btn);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14);
+            font-size: 15px;
+        }
+        #expand-sidebar-btn:hover { background: var(--ui-btn-hover); }
+
+        /* 모바일 세로 전용 하단 미니 독 바 */
+        #mobile-bottom-dock {
+            display: none;
+            position: fixed;
+            left: 14px;
+            right: 14px;
+            bottom: calc(14px + env(safe-area-inset-bottom));
+            background: var(--dock-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 8px 10px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18);
+            z-index: 30;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .dock-btn {
+            flex: 1;
+            height: 42px;
+            margin: 0;
+            padding: 0 12px;
+            border-radius: 11px;
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            font-size: 13.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+        .dock-btn:hover { background: var(--border-color); }
+        .dock-btn.primary {
+            background: var(--ui-btn);
+            color: #ffffff;
+            border: none;
+        }
+        .dock-btn.primary:hover { background: var(--ui-btn-hover); }
+        .dock-btn.accent {
+            background: var(--brand);
+            color: #ffffff;
+            border: none;
+        }
+        .dock-btn.accent:hover { background: #1d4ed8; }
+
+        /* 태블릿 / 모바일 가로 전용 플로팅 메뉴 버튼 */
+        #floating-menu-btn {
+            display: none;
+            position: fixed;
+            left: 12px;
+            bottom: calc(14px + env(safe-area-inset-bottom));
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(30, 41, 59, 0.92);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+            touch-action: none;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            color: var(--kor-color);
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-utils {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .util-btn {
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+            height: 32px;
+            min-width: 32px;
+            width: auto;
+            padding: 0 7px;
+            margin: 0;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .util-btn:hover { background: var(--border-color); }
+        .util-btn.dark-active {
+            background: rgba(251, 191, 36, 0.18);
+            border-color: rgba(251, 191, 36, 0.55);
+            color: #fbbf24;
+        }
+
+        #workspace {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            min-width: 0;
+            width: 100%;
+        }
+
+        #card-creator-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        #start-select-btn {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        body.app-dark #start-select-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+        #start-select-btn:hover { filter: brightness(1.08); }
+
+        .control-group {
+            background: var(--surface-soft);
+            padding: 11px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 0;
+            position: relative;
+            transition: background-color 0.22s ease, border-color 0.22s ease;
+        }
+        .control-group h3 {
+            margin: 0 0 8px 0;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--kor-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        select, input[type="text"], input[type="number"], button {
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 7px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-family: 'SUIT', sans-serif;
+            background-color: var(--input-bg);
+            color: var(--kor-color);
+        }
+        select:focus, input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #94a3b8;
+            box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+        }
+        button {
+            background: var(--ui-btn);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.18s ease, transform 0.12s ease;
+            margin-bottom: 0;
+        }
+        button:hover { background: var(--ui-btn-hover); }
+        button:active { transform: scale(0.99); }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--kor-color);
+        }
+        .btn-secondary:hover { filter: brightness(0.94); }
+
+        input[type="checkbox"] {
+            accent-color: var(--brand);
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .verse-checkbox {
+            display: none !important;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+        .verse-checkbox.show-chk { display: inline-block !important; }
+
+        .sidebar-search-box { display: flex; gap: 6px; }
+        .sidebar-search-box input { margin-bottom: 0; flex-grow: 1; min-width: 0; }
+        .sidebar-search-box button { width: auto; padding: 8px 13px; white-space: nowrap; flex-shrink: 0; }
+        #search-results {
+            max-height: 230px;
+            overflow-y: auto;
+            background: var(--panel-bg);
+            position: absolute;
+            top: 76px;
+            left: 11px;
+            right: 11px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.18);
+            display: none;
+            z-index: 1000;
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+        }
+        .search-item { padding: 9px 11px; cursor: pointer; border-bottom: 1px solid var(--border-subtle); font-size: 13px; color: var(--kor-color); }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: var(--surface-soft); }
+        .search-preview { color: var(--text-muted); font-size: 11.5px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .num-spinner-wrap { position: relative; flex: 1; display: flex; align-items: center; margin-bottom: 7px; }
+        .num-spinner-wrap input { margin-bottom: 0; padding-right: 26px; width: 100%; }
+        .spin-btns { position: absolute; right: 4px; top: 3px; bottom: 3px; width: 20px; display: flex; flex-direction: column; gap: 1px; }
+        .spin-btn {
+            flex: 1;
+            background: var(--border-color);
+            color: var(--kor-color);
+            border: none;
+            padding: 0;
+            margin: 0;
+            font-size: 8.5px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .spin-btn:hover { filter: brightness(0.92); }
+
+        /* ==========================================
+           리딩 윈도우
+           ========================================== */
+        #windows-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 16px;
+            gap: 16px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-grow: 1;
+            align-content: flex-start;
+            width: 100%;
+        }
+        .reading-window {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-lg);
+            flex: 1 1 calc(50% - 8px);
+            min-width: 280px;
+            height: calc(100dvh - 32px);
+            min-height: 460px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .reading-window.fullscreen {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            z-index: 60 !important;
+            box-shadow: none !important;
+        }
+        .reading-window.fullscreen .window-header {
+            border-radius: 0 !important;
+            padding-top: max(10px, env(safe-area-inset-top));
+        }
+        .reading-window.fullscreen .window-content {
+            padding-bottom: calc(32px + env(safe-area-inset-bottom));
+        }
+
+        .window-header {
+            background: #1e293b;
+            color: white;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        .window-header-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; flex: 1; }
+        .window-title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; letter-spacing: -0.2px; }
+
+        .header-actions { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid transparent;
+            color: white;
+            height: 28px;
+            min-width: 28px;
+            width: auto;
+            padding: 0 7px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1;
+            transition: background 0.15s, opacity 0.15s, border-color 0.15s;
+        }
+        .icon-btn:hover { background: rgba(255, 255, 255, 0.28); }
+        .icon-btn.lang-btn.active { background: rgba(255, 255, 255, 0.26); border-color: rgba(255, 255, 255, 0.62); color: #ffffff; }
+        .icon-btn.lang-btn.inactive { background: rgba(15, 23, 42, 0.28); color: rgba(255, 255, 255, 0.42); border-color: transparent; }
+        .icon-btn.dark-toggle-btn.active { background: rgba(251, 191, 36, 0.25); border-color: rgba(251, 191, 36, 0.65); color: #fde68a; }
+        .icon-btn.fs-toggle-btn.active { background: rgba(59, 130, 246, 0.35); border-color: rgba(147, 197, 253, 0.75); color: #ffffff; }
+        .close-btn { font-size: 14px; background: transparent; padding: 0; width: 28px; }
+        .close-btn:hover { background: rgba(239, 68, 68, 0.85); }
+        .mobile-only-close { display: none; }
+
+        .window-content {
+            padding: 22px 24px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-grow: 1;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .window-content.hide-kor .kor-text { display: none !important; }
+        .window-content.hide-eng .eng-text { display: none !important; }
+
+        .verse-text-group { flex-grow: 1; min-width: 0; display: flex; flex-direction: column; }
+        .verse-num { font-weight: 700; color: #64748b; margin-right: 7px; font-size: 0.88em; font-style: normal; }
+
+        .kor-text { order: 1; color: #0f172a; margin: 0 0 7px 0; line-height: 1.75; font-size: 16px; word-break: keep-all; transition: font-size 0.18s, color 0.2s; }
+        .eng-text { order: 2; color: #475569; margin: 0; line-height: 1.55; font-size: 15px; font-style: italic; transition: font-size 0.18s, color 0.2s; }
+        .kor-verse-num { display: inline; }
+        .eng-verse-num { display: none; }
+        .window-content.hide-kor .eng-verse-num { display: inline !important; }
+
+        body.lang-en .eng-text { order: 1; color: #0f172a; margin: 0 0 7px 0; line-height: 1.65; font-size: 16px; font-style: normal; }
+        body.lang-en .kor-text { order: 2; color: #475569; margin: 0; line-height: 1.68; font-size: 14.8px; }
+        body.lang-en .eng-verse-num { display: inline; }
+        body.lang-en .kor-verse-num { display: none; }
+        body.lang-en .window-content.hide-eng .kor-verse-num { display: inline !important; }
+
+        .chapter-title {
+            background: #f8fafc;
+            padding: 9px 13px;
+            font-weight: 700;
+            font-size: 14.5px;
+            color: #1e293b;
+            margin: 22px 0 14px 0;
+            border-left: 3.5px solid #64748b;
+            border-radius: 0 6px 6px 0;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .chapter-title:first-child { margin-top: 2px; }
+
+        .verse-block {
+            margin-bottom: 14px;
+            padding: 6px 8px 14px 8px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+            position: relative;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            transition: background 0.18s, border-color 0.18s;
+            border-radius: 8px;
+        }
+        .verse-block:last-child { border-bottom: none; }
+        .verse-block.selectable { cursor: pointer; }
+        .verse-block.selectable:hover { background: #f1f5f9; }
+        .verse-block.selected-target { background: #e2e8f0; border-bottom-color: transparent; }
+
+        .reading-window.dark-mode { background: #171d29; border-color: #2b3548; }
+        .reading-window.dark-mode .window-header { background: #111622; }
+        .reading-window.dark-mode .window-content { background: #171d29; }
+        .reading-window.dark-mode .chapter-title { background: #222b3c; color: #f1f5f9; border-left-color: #94a3b8; }
+        .reading-window.dark-mode .verse-block { border-bottom-color: rgba(255, 255, 255, 0.07); }
+        .reading-window.dark-mode .verse-block.selectable:hover { background: #222b3c; }
+        .reading-window.dark-mode .verse-block.selected-target { background: #2a364c; border-bottom-color: transparent; }
+        .reading-window.dark-mode .kor-text { color: #f8fafc; }
+        .reading-window.dark-mode .eng-text { color: #cbd5e1; }
+        .reading-window.dark-mode .verse-num { color: #94a3b8; }
+        body.lang-en .reading-window.dark-mode .eng-text { color: #f8fafc; }
+        body.lang-en .reading-window.dark-mode .kor-text { color: #cbd5e1; }
+
+        #history-list { padding-left: 0; margin: 0; list-style: none; max-height: 120px; overflow-y: auto; }
+        #history-list li { margin-bottom: 3px; cursor: pointer; color: var(--text-muted); padding: 6px 8px; border-radius: 6px; font-size: 13px; }
+        #history-list li:hover { background: var(--border-color); color: var(--kor-color); }
+
+        #error-banner {
+            background: #ef4444; color: white; padding: 11px 14px;
+            text-align: center; font-weight: 600; font-size: 13px; display: none; z-index: 100;
+        }
+
+        #toast-msg {
+            position: fixed;
+            bottom: calc(82px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.94);
+            color: #ffffff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            display: none;
+            z-index: 20000;
+            pointer-events: none;
+            max-width: 88vw;
+            text-align: center;
+        }
+
+        /* ==========================================
+           말씀 카드 편집기 모달 + 전체화면 미리보기 모드
+           ========================================== */
+        #img-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.84);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 18px;
+        }
+        #img-modal.preview-fullscreen {
+            padding: 0 !important;
+        }
+
+        .modal-body {
+            position: relative;
+            background: var(--panel-bg);
+            width: 1120px;
+            max-width: 100%;
+            height: 88vh;
+            max-height: 900px;
+            border-radius: 16px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        }
+        #img-modal.preview-fullscreen .modal-body {
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            max-width: none !important;
+            max-height: none !important;
+            border-radius: 0 !important;
+        }
+        #img-modal.preview-fullscreen .settings-pane,
+        #img-modal.preview-fullscreen .modal-top-close,
+        #img-modal.preview-fullscreen #preview-fs-btn {
+            display: none !important;
+        }
+        #img-modal.preview-fullscreen .preview-pane {
+            flex: 1 1 100% !important;
+            height: 100% !important;
+            padding: max(20px, env(safe-area-inset-top)) 56px calc(86px + env(safe-area-inset-bottom)) 56px !important;
+        }
+
+        .modal-top-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            margin: 0;
+            border-radius: 9px;
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 60;
+            transition: background 0.15s, color 0.15s;
+        }
+        .modal-top-close:hover { background: var(--border-color); }
+
+        .preview-pane {
+            flex: 1;
+            background: #0b1120;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 56px;
+            overflow: hidden;
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        /* 5. 최신 스타일 세련된 원형 글래스 좌우 버튼 */
+        .preview-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            margin: 0;
+            padding: 0;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.48);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 40;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+            transition: background 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+        }
+        .preview-nav-arrow:hover {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.36);
+            color: #ffffff;
+        }
+        .preview-nav-arrow:active { transform: translateY(-50%) scale(0.92); }
+        .preview-nav-arrow.left { left: 12px; }
+        .preview-nav-arrow.right { right: 12px; }
+
+        /* 6. 미리보기 우측 하단 전체화면 보기 버튼 */
+        #preview-fs-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            width: 36px;
+            height: 36px;
+            margin: 0;
+            padding: 0;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 42;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+            transition: background 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+        }
+        #preview-fs-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.36);
+            color: #ffffff;
+        }
+        #preview-fs-btn:active { transform: scale(0.92); }
+
+        /* 전체화면 미리보기 전용 하단 컨트롤 바 (돌아가기 + 이미지 저장) */
+        #preview-fs-bar {
+            display: none;
+            position: fixed;
+            left: 50%;
+            bottom: calc(18px + env(safe-area-inset-bottom));
+            transform: translateX(-50%);
+            z-index: 70;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            align-items: center;
+        }
+        #img-modal.preview-fullscreen #preview-fs-bar {
+            display: flex;
+        }
+        .fs-bar-btn {
+            width: auto;
+            height: 40px;
+            margin: 0;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .fs-bar-btn.back {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        .fs-bar-btn.back:hover { background: rgba(255, 255, 255, 0.24); }
+        .fs-bar-btn.save {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+        }
+        .fs-bar-btn.save:hover { background: #1d4ed8; }
+
+        .preview-scale-box { display: flex; align-items: center; justify-content: center; position: relative; }
+        .preview-frame {
+            box-shadow: 0 14px 38px rgba(0, 0, 0, 0.55);
+            display: inline-block;
+            line-height: 0;
+            transform-origin: center center;
+        }
+
+        .settings-pane {
+            width: 400px;
+            background: var(--surface-soft);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            min-height: 0;
+        }
+
+        .settings-pane:has(#tab-panel-text.active-tab):has(#tcolor-custom.active) {
+                max-height: 74dvh;
+            }
+            .modal-body:has(#tab-panel-text.active-tab):has(#tcolor-custom.active) .preview-pane {
+                min-height: 140px;
+            }
+        .settings-header {
+            padding: 16px 52px 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            flex-shrink: 0;
+        }
+
+        .settings-header h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--kor-color); letter-spacing: -0.3px; }
+
+        .mobile-editor-tabs {
+            display: none;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 10px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .editor-tab-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-bottom: 2.5px solid transparent;
+            border-radius: 0;
+            padding: 10px 4px;
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .editor-tab-btn:hover { background: transparent; color: var(--kor-color); }
+        .editor-tab-btn.active { color: var(--brand); border-bottom-color: var(--brand); background: transparent; }
+
+        .settings-scroll {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 14px 20px 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .editor-tab-panel { display: flex; flex-direction: column; gap: 11px; }
+        .settings-scroll h3 { margin: 4px 0 2px 0; font-size: 12.5px; color: var(--text-muted); font-weight: 700; letter-spacing: -0.2px; }
+
+        .settings-footer {
+            padding: 12px 20px calc(14px + env(safe-area-inset-bottom)) 20px;
+            background: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        #download-card-btn {
+            background: var(--brand);
+            color: #ffffff;
+            font-size: 14.5px;
+            font-weight: 700;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 0;
+        }
+        #download-card-btn:hover { background: #1d4ed8; }
+
+        #render-target {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #ffffff;
+            padding: 40px;
+            overflow: hidden;
+            width: 360px;
+            height: 640px;
+            background: #ffffff;
+            line-height: normal;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        #render-target.draggable-bg { cursor: grab; }
+        #render-target.draggable-bg.dragging { cursor: grabbing; }
+
+        #render-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            z-index: 1;
+            pointer-events: none;
+        }
+        #render-dim {
+            position: absolute;
+            inset: 0;
+            background-color: #000000;
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .render-content {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 18px;
+            pointer-events: none;
+        }
+        .render-text {
+            font-size: 20px;
+            line-height: 1.75;
+            font-weight: 500;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+            word-break: keep-all;
+        }
+        .card-verse-item { margin-bottom: 16px; }
+        .card-verse-item:last-child { margin-bottom: 0; }
+        .card-line-group { margin-bottom: 8px; }
+        .card-line-group:last-child { margin-bottom: 0; }
+        .card-inline-ref {
+            font-size: 0.49em;
+            opacity: 0.85;
+            margin-top: 6px;
+            font-family: 'SUIT', sans-serif !important;
+            font-style: normal;
+            font-weight: 500;
+            letter-spacing: 0.4px;
+        }
+        .render-source {
+            display: none;
+            font-size: 14px;
+            opacity: 0.92;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+            font-family: 'SUIT', sans-serif !important;
+        }
+
+        /* ==========================================
+           3. 슬림 & 세련된 슬라이더 (코너 라운드 축소 + 모바일 터치 공간 확보)
+           - 수치 바(.pill-slider): 6px(모바일 8px) 초슬림 트랙 + 손잡이 없음 + 넉넉한 터치 영역(28~36px)
+           - 색상 바(.color-slider): 14px(모바일 16px) 트랙 + 라운드 4px + 테두리 없는 글로우 원
+           ========================================== */
+        input[type="range"].pill-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 28px;
+            background: transparent;
+            outline: none;
+            margin: 0;
+            cursor: pointer;
+        }
+        input[type="range"].pill-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--slider-bg, var(--pill-track));
+            transition: filter 0.15s ease;
+        }
+        input[type="range"].pill-slider::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--slider-bg, var(--pill-track));
+        }
+        input[type="range"].pill-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            background: transparent;
+            border: none;
+        }
+        input[type="range"].pill-slider::-moz-range-thumb {
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            background: transparent;
+            border: none;
+        }
+
+        input[type="range"].color-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 28px;
+            background: transparent;
+            outline: none;
+            margin: 0;
+            cursor: pointer;
+        }
+        input[type="range"].color-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 4px;
+            background: var(--slider-bg, #3b82f6);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16);
+        }
+        input[type="range"].color-slider::-moz-range-track {
+            width: 100%;
+            height: 14px;
+            border-radius: 4px;
+            background: var(--slider-bg, #3b82f6);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16);
+        }
+        input[type="range"].color-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            margin-top: -1px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.96);
+            border: none;
+            box-shadow: 0 0 0 2.5px rgba(255, 255, 255, 0.32), 0 2px 7px rgba(0, 0, 0, 0.45);
+            cursor: pointer;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        input[type="range"].color-slider::-webkit-slider-thumb:hover,
+        input[type="range"].color-slider::-webkit-slider-thumb:active {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3.5px rgba(255, 255, 255, 0.48), 0 3px 9px rgba(0, 0, 0, 0.5);
+        }
+        input[type="range"].color-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.96);
+            border: none;
+            box-shadow: 0 0 0 2.5px rgba(255, 255, 255, 0.32), 0 2px 7px rgba(0, 0, 0, 0.45);
+            cursor: pointer;
+        }
+
+        /* 1. 다크모드 섬네일 빈 공간 보정: 테마 변수 --thumb-grid-bg 사용 */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            padding: 2px;
+            background: var(--thumb-grid-bg);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 2px;
+        }
+        .gallery-thumb {
+            width: 100%;
+            height: 58px;
+            border-radius: 2px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            position: relative;
+            transition: opacity 0.15s ease;
+        }
+        .gallery-thumb:hover { opacity: 0.9; }
+        .gallery-thumb.active {
+            box-shadow: inset 0 0 0 2.5px #2563eb, inset 0 0 0 4px rgba(255, 255, 255, 0.9);
+        }
+        .gallery-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .gallery-nav button {
+            padding: 4px 9px;
+            margin: 0;
+            font-size: 11px;
+            width: auto;
+            background: var(--border-color);
+            color: var(--kor-color);
+            border-radius: 5px;
+        }
+        .gallery-nav button:hover { filter: brightness(0.92); }
+
+        /* 4. 배경이미지 위치 조정: 슬라이더 제거 -> 1줄 드래그 안내 + 중앙 초기화 버튼 */
+        #bg-position-ui {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 11px 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .bg-pos-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+        .bg-pos-info h3 {
+            margin: 0;
+            font-size: 12.5px;
+            color: var(--kor-color);
+        }
+        .bg-pos-desc {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+        .bg-pos-reset-btn {
+            width: auto;
+            padding: 7px 11px;
+            margin: 0;
+            font-size: 11.5px;
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .bg-pos-reset-btn:hover { background: var(--border-color); }
+
+        /* 단색 / 파스텔 / 투톤 팔레트 */
+        .palette-section-title { font-size: 11.5px; color: var(--text-muted); margin: 6px 0 4px 0; font-weight: 700; }
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1px;
+            padding: 0;
+            background: var(--palette-gap-bg);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+            margin-bottom: 4px;
+        }
+        .color-swatch {
+            height: 34px;
+            border-radius: 0;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            transition: opacity 0.12s ease;
+        }
+        .color-swatch:hover { opacity: 0.9; z-index: 2; }
+        .color-swatch.is-white { box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.09); }
+        .color-swatch.active::after {
+            content: '✓';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+        }
+        .color-swatch.active.light-swatch::after { color: #0f172a; text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75); }
+
+        /* 폰트 색상 선택 UI */
+        .text-color-btns { display: flex; gap: 6px; }
+        .text-color-btns button {
+            flex: 1;
+            padding: 8px 6px;
+            font-size: 12.5px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            color: var(--kor-color);
+        }
+        .text-color-btns button.active {
+            border-color: var(--brand);
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--brand);
+            font-weight: 700;
+        }
+        #custom-text-color-bar {
+            display: none;
+            background: var(--panel-bg);
+            padding: 12px 13px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-top: 4px;
+        }
+        .color-bar-block { display: flex; flex-direction: column; gap: 3px; }
+        .color-bar-block + .color-bar-block { margin-top: 14px; }
+        .color-bar-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* ==========================================
+           반응형 1: 태블릿 (768px ~ 1023px)
+           ========================================== */
+        @media (max-width: 1023px) and (min-width: 768px) {
+            #collapsed-rail { display: none !important; }
+            #sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 304px;
+                margin-left: 0 !important;
+                transform: translateX(-105%);
+                box-shadow: 8px 0 32px rgba(15, 23, 42, 0.2);
+            }
+            #sidebar.drawer-open { transform: translateX(0); }
+            #floating-menu-btn { display: flex; }
+            #windows-container { padding: 14px; gap: 14px; }
+            .reading-window {
+                flex: 1 1 calc(50% - 7px);
+                min-width: 280px;
+                height: calc(100dvh - 28px);
+                min-height: 440px;
+            }
+        }
+
+        /* ==========================================
+           반응형 2: 모바일 세로 (max-width: 767px)
+           ========================================== */
+        @media (max-width: 767px) {
+            #collapsed-rail { display: none !important; }
+            #floating-menu-btn { display: none; }
+
+            #sidebar {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: auto;
+                width: 100%;
+                max-height: 82dvh;
+                margin-left: 0 !important;
+                border-right: none;
+                border-top: 1px solid var(--border-color);
+                border-radius: 22px 22px 0 0;
+                padding: 6px 16px calc(22px + env(safe-area-inset-bottom)) 16px;
+                box-shadow: 0 -12px 38px rgba(15, 23, 42, 0.25);
+                transform: translateY(105%);
+                z-index: 45;
+            }
+            #sidebar.sheet-open { transform: translateY(0); }
+            .sheet-handle-wrap { display: flex; }
+            .util-btn { height: 36px; min-width: 36px; border-radius: 10px; font-size: 13px; }
+
+            #sidebar select,
+            #sidebar input[type="text"],
+            #sidebar input[type="number"] {
+                font-size: 16px;
+                padding: 9px 11px;
+            }
+
+            #search-results {
+                position: static;
+                margin-top: 8px;
+                max-height: 180px;
+                box-shadow: none;
+                border: 1px solid var(--border-color);
+            }
+
+            #mobile-bottom-dock { display: flex; }
+            #mobile-bottom-dock.hidden { display: none; }
+
+            #windows-container {
+                padding: 10px 10px calc(98px + env(safe-area-inset-bottom)) 10px;
+                gap: 12px;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                overflow-x: hidden;
+            }
+            .reading-window {
+                flex: none;
+                width: 100%;
+                min-width: 0;
+                height: 66dvh;
+                min-height: 350px;
+                border-radius: 14px;
+            }
+
+            .window-header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 10px 12px 11px 12px;
+                gap: 9px;
+                font-size: 14px;
+            }
+            .mobile-only-close { display: inline-flex; }
+            .desktop-only-close { display: none; }
+
+            .header-actions { width: 100%; justify-content: space-between; gap: 7px; }
+            .header-actions .icon-btn { flex: 1; height: 36px; min-width: 38px; font-size: 13px; border-radius: 8px; }
+            .window-content { padding: 16px 15px; }
+            .kor-text { font-size: 15.5px; line-height: 1.72; }
+            .eng-text { font-size: 14px; }
+        }
+
+        /* ==========================================
+           반응형 3: 모바일 가로 모드 (Landscape)
+           ========================================== */
+        @media (orientation: landscape) and (max-height: 520px) {
+            #collapsed-rail { display: none !important; }
+            #mobile-bottom-dock { display: none !important; }
+            #floating-menu-btn { display: flex; }
+
+            #sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: auto;
+                width: 295px;
+                max-height: 100dvh;
+                border-radius: 0 16px 16px 0;
+                border-top: none;
+                border-right: 1px solid var(--border-color);
+                padding: 12px 14px;
+                transform: translateX(-105%);
+                box-shadow: 8px 0 30px rgba(15, 23, 42, 0.22);
+            }
+            #sidebar.drawer-open { transform: translateX(0); }
+            .sheet-handle-wrap { display: none; }
+
+            #windows-container {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 10px;
+                gap: 10px;
+            }
+            .reading-window {
+                flex: 1 0 calc(50% - 5px);
+                width: auto;
+                min-width: 260px;
+                height: calc(100dvh - 20px);
+                min-height: 0;
+                border-radius: 12px;
+            }
+            .window-header { flex-direction: row; align-items: center; padding: 8px 10px; gap: 6px; font-size: 13px; }
+            .mobile-only-close { display: none; }
+            .desktop-only-close { display: inline-flex; }
+            .header-actions { width: auto; gap: 4px; }
+            .header-actions .icon-btn { flex: none; height: 28px; min-width: 28px; font-size: 11.5px; }
+            .window-content { padding: 14px 16px; }
+        }
+
+        /* ==========================================
+           반응형 4: 카드 편집기 모달 (모바일 터치 공간 확보 + 슬림 트랙)
+           ========================================== */
+        @media (max-width: 860px) {
+            #img-modal { padding: 0; }
+            .modal-body {
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                max-height: none;
+                border-radius: 0;
+                flex-direction: column;
+            }
+            .modal-top-close {
+                top: max(10px, env(safe-area-inset-top));
+                right: 10px;
+                background: rgba(15, 23, 42, 0.62);
+                color: #ffffff;
+                border-color: rgba(255, 255, 255, 0.22);
+            }
+            .modal-top-close:hover { background: rgba(15, 23, 42, 0.88); color: #ffffff; }
+            .preview-pane {
+                flex: 1 1 auto;
+                min-height: 200px;
+                padding: calc(12px + env(safe-area-inset-top)) 50px 12px 50px;
+            }
+            .preview-nav-arrow { width: 34px; height: 34px; }
+            .preview-nav-arrow.left { left: 8px; }
+            .preview-nav-arrow.right { right: 8px; }
+            #preview-fs-btn { right: 8px; bottom: 8px; width: 34px; height: 34px; }
+
+            .settings-pane {
+                width: 100%;
+                flex: 0 0 auto;
+                max-height: 54dvh;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+            .settings-header { display: none; }
+            .mobile-editor-tabs { display: flex; }
+            .settings-scroll { flex: 0 1 auto; padding: 12px 16px 14px 16px; }
+            .editor-tab-panel { display: none; }
+            .editor-tab-panel.active-tab { display: flex; }
+            .settings-pane select { font-size: 15px; }
+
+            /* 모바일 터치 영역(36px) 확보 + 눈에 보이는 바는 슬림(8px / 16px) 유지 */
+            input[type="range"].pill-slider { height: 36px; }
+            input[type="range"].pill-slider::-webkit-slider-runnable-track { height: 8px; border-radius: 3px; }
+            input[type="range"].pill-slider::-moz-range-track { height: 8px; border-radius: 3px; }
+
+            input[type="range"].color-slider { height: 36px; }
+            input[type="range"].color-slider::-webkit-slider-runnable-track { height: 16px; border-radius: 4px; }
+            input[type="range"].color-slider::-moz-range-track { height: 16px; border-radius: 4px; }
+            input[type="range"].color-slider::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -1px; }
+            input[type="range"].color-slider::-moz-range-thumb { width: 18px; height: 18px; }
+
+            .color-bar-block + .color-bar-block { margin-top: 18px; }
+            .settings-footer { padding: 10px 16px calc(16px + env(safe-area-inset-bottom)) 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PC 사이드바 접힘 레일 -->
+    <div id="collapsed-rail">
+        <button id="expand-sidebar-btn" class="rail-icon-btn" onclick="toggleSidebar()" title="메뉴 펼치기">☰</button>
+        <button id="rail-dark-btn" class="rail-icon-btn" onclick="toggleGlobalDarkMode()" title="전체 다크모드">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 모바일/태블릿 백드롭 -->
+    <div id="mobile-backdrop" onclick="closeMobileMenu()"></div>
+
+    <!-- 태블릿 / 모바일 가로 전용 플로팅 메뉴 열기 버튼 -->
+    <button id="floating-menu-btn" onclick="toggleSidebar()" title="메뉴 열기">☰</button>
+
+    <!-- 모바일 세로 전용 하단 미니 독 바 -->
+    <div id="mobile-bottom-dock">
+        <button type="button" class="dock-btn primary" id="dock-menu-btn" onclick="openMobileSheet()">▲ 메뉴</button>
+        <button type="button" class="dock-btn" id="dock-select-btn" onclick="handleDockSelectAction()">말씀 카드</button>
+        <button type="button" class="dock-btn" id="dock-cancel-btn" style="display:none; flex:0.65;" onclick="cancelGlobalSelection()">취소</button>
+    </div>
+
+    <!-- 좌측 사이드바 / 모바일 바텀시트 패널 -->
+    <div id="sidebar">
+        <div class="sheet-handle-wrap" id="sheet-handle-wrap" onclick="closeMobileMenu()" title="아래로 밀어 접기">
+            <div class="sheet-handle"></div>
+        </div>
+        <div class="sidebar-header" id="sidebar-header">
+            <h2 id="ui-app-title">성경 작업공간</h2>
+            <div class="sidebar-utils">
+                <button type="button" class="util-btn" id="lang-toggle-btn" onclick="toggleUiLanguage()" title="언어 전환 (KR / EN)">EN</button>
+                <button type="button" class="util-btn" id="global-dark-btn" onclick="toggleGlobalDarkMode()" title="전체 다크모드 전환">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <button type="button" class="util-btn" id="sidebar-collapse-icon" onclick="toggleSidebar()" title="메뉴 접기">◀</button>
+            </div>
+        </div>
+
+        <!-- 말씀 카드 생성 -->
+        <div id="card-creator-section">
+            <button id="start-select-btn" onclick="toggleGlobalSelectMode()">말씀 카드 생성</button>
+            <div id="select-actions" style="display:none; flex-direction:column; gap:6px;">
+                <button id="confirm-select-btn" onclick="confirmGlobalSelection()" style="background:#2563eb; font-size:13.5px; padding:11px;">선택 완료 (편집기 열기)</button>
+                <button id="cancel-select-btn" class="btn-secondary" onclick="cancelGlobalSelection()" style="padding:9px;">취소 및 복귀</button>
+            </div>
+        </div>
+
+        <!-- 빠른 말씀 검색 섹션 -->
+        <div class="control-group" id="search-group">
+            <h3 id="ui-search-title">빠른 말씀 검색</h3>
+            <div class="sidebar-search-box">
+                <input type="text" id="search-input" enterkeyhint="search" autocomplete="off" placeholder="약어(창 1:1) 또는 단어..." onkeypress="if(event.key === 'Enter') executeSearch()">
+                <button id="search-btn" onclick="executeSearch()">검색</button>
+            </div>
+            <div id="search-results"></div>
+        </div>
+
+        <!-- 말씀 열기 블록 -->
+        <div class="control-group">
+            <select id="book-select" onchange="onBookChange()"></select>
+            <div style="display: flex; gap: 8px;">
+                <div class="num-spinner-wrap">
+                    <input type="text" inputmode="numeric" id="chapter-input" placeholder="장 (전체)" oninput="sanitizePositiveInt(this); onChapterChange()" onkeydown="handleSpinKey(event, 'chapter-input')">
+                    <div class="spin-btns">
+                        <button type="button" class="spin-btn" tabindex="-1" onclick="stepInput('chapter-input', 1)">▲</button>
+                        <button type="button" class="spin-btn" tabindex="-1" onclick="stepInput('chapter-input', -1)">▼</button>
+                    </div>
+                </div>
+                <div class="num-spinner-wrap">
+                    <input type="text" inputmode="numeric" id="verse-input" placeholder="절 (전체)" oninput="sanitizePositiveInt(this)" onkeydown="handleSpinKey(event, 'verse-input')">
+                    <div class="spin-btns">
+                        <button type="button" class="spin-btn" tabindex="-1" onclick="stepInput('verse-input', 1)">▲</button>
+                        <button type="button" class="spin-btn" tabindex="-1" onclick="stepInput('verse-input', -1)">▼</button>
+                    </div>
+                </div>
+            </div>
+            <button id="open-passage-btn" onclick="openSelected()">말씀 열기</button>
+        </div>
+
+        <div class="control-group">
+            <h3>
+                <span id="ui-history-title">최근 열어본 말씀</span>
+                <button id="clear-history-btn" onclick="clearHistory()" style="background:none; border:none; color:var(--text-muted); width:auto; padding:0; margin:0; font-size:11.5px;">지우기 ↺</button>
+            </h3>
+            <ul id="history-list"></ul>
+            <button id="export-history-btn" class="btn-secondary" onclick="exportData()" style="margin-top:8px;">기록 저장 (.txt)</button>
+        </div>
+    </div>
+
+    <!-- 우측 리딩 워크스페이스 -->
+    <div id="workspace">
+        <div id="error-banner">
+            ⚠️ 경고: 현재 브라우저의 file:/// 경로로 접속하셨습니다. 터미널에서 'python -m http.server 8000' 실행 후 localhost:8000 으로 접속해주세요.
+        </div>
+        <div id="windows-container"></div>
+    </div>
+
+    <!-- 안내 토스트 팝업 -->
+    <div id="toast-msg"></div>
+
+    <!-- 이미지 편집 모달 인터페이스 -->
+    <div id="img-modal">
+        <div class="modal-body">
+            <button type="button" class="modal-top-close" onclick="closeImageModal()" title="닫기 (ESC)">✕</button>
+
+            <div class="preview-pane" id="preview-pane">
+                <!-- 세련된 원형 글래스 좌우 전환 버튼 -->
+                <button type="button" class="preview-nav-arrow left" onclick="navigatePreviewBg(-1)" title="이전 배경">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+
+                <div class="preview-scale-box" id="preview-scale-box">
+                    <div class="preview-frame" id="preview-frame">
+                        <div id="render-target" class="draggable-bg">
+                            <div id="render-bg"></div>
+                            <div id="render-dim"></div>
+                            <div class="render-content">
+                                <div class="render-text" id="target-verse-text">말씀 텍스트 예시입니다.</div>
+                                <div class="render-source" id="target-verse-ref">창세기 1장 1절</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="preview-nav-arrow right" onclick="navigatePreviewBg(1)" title="다음 배경">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+
+                <!-- 미리보기 전체화면 보기 버튼 -->
+                <button type="button" id="preview-fs-btn" onclick="togglePreviewFullscreen(true)" title="전체화면으로 보기">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <polyline points="9 21 3 21 3 15"></polyline>
+                        <line x1="21" y1="3" x2="14" y2="10"></line>
+                        <line x1="3" y1="21" x2="10" y2="14"></line>
+                    </svg>
+                </button>
+
+                <!-- 전체화면 미리보기 전용 하단 바 (돌아가기 + 이미지 저장) -->
+                <div id="preview-fs-bar">
+                    <button type="button" class="fs-bar-btn back" id="fs-back-btn" onclick="togglePreviewFullscreen(false)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        <span id="fs-back-label">돌아가기</span>
+                    </button>
+                    <button type="button" class="fs-bar-btn save" id="fs-save-btn" onclick="downloadCardImage()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span id="fs-save-label">이미지 저장</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-pane">
+                <div class="settings-header">
+                    <h2 id="ui-editor-title">말씀 이미지 편집기</h2>
+                </div>
+
+                <!-- 모바일 전용 탭 바 -->
+                <div class="mobile-editor-tabs">
+                    <button type="button" class="editor-tab-btn active" id="tab-btn-bg" onclick="switchEditorTab('bg', this)">규격 · 배경</button>
+                    <button type="button" class="editor-tab-btn" id="tab-btn-adjust" onclick="switchEditorTab('adjust', this)">위치 · 밝기</button>
+                    <button type="button" class="editor-tab-btn" id="tab-btn-text" onclick="switchEditorTab('text', this)">글자 · 색상</button>
+                </div>
+
+                <div class="settings-scroll">
+                    <!-- 탭 1: 규격 및 배경 -->
+                    <div class="editor-tab-panel active-tab" id="tab-panel-bg">
+                        <h3 id="ui-dim-title">카드 규격 선택</h3>
+                        <select id="dim-preset" onchange="applyDimensions()">
+                            <option value="mobile" id="opt-dim-mobile">모바일 배경화면 (9:16)</option>
+                            <option value="sns" id="opt-dim-sns">SNS 정사각형 (1:1)</option>
+                            <option value="pc" id="opt-dim-pc">PC 배경화면 (16:9)</option>
+                        </select>
+
+                        <h3 id="ui-cat-title">배경 테마 선택</h3>
+                        <select id="category-select" onchange="loadCategoryGallery()">
+                            <option value="landscape" id="opt-cat-landscape">웅대한 랜드스케이프</option>
+                            <option value="tiny_life" id="opt-cat-tiny">생명력 있는 자연</option>
+                            <option value="color_palette" id="opt-cat-palette">단색 / 그라데이션 팔레트</option>
+                        </select>
+
+                        <!-- 사진 카테고리 섬네일 -->
+                        <div id="gallery-ui">
+                            <div class="gallery-nav">
+                                <span id="ui-gallery-label">섬네일 탐색</span>
+                                <div>
+                                    <button type="button" onclick="navigateGallery(-1)">◀</button>
+                                    <button type="button" id="ui-random-btn" onclick="shufGallery()">랜덤</button>
+                                    <button type="button" onclick="navigateGallery(1)">▶</button>
+                                </div>
+                            </div>
+                            <div class="gallery-container" id="gallery-container"></div>
+                        </div>
+
+                        <!-- 단색/파스텔/투톤 팔레트 -->
+                        <div id="palette-ui" style="display: none;">
+                            <div class="palette-section-title" id="ui-pal-solid">선명한 단색</div>
+                            <div class="palette-grid" id="palette-fundamental"></div>
+
+                            <div class="palette-section-title" id="ui-pal-pastel">파스텔 톤 (소프트 / 딥 파스텔)</div>
+                            <div class="palette-grid" id="palette-pastel"></div>
+
+                            <div class="palette-section-title" id="ui-pal-twotone">투톤</div>
+                            <div class="palette-grid" id="palette-twotone"></div>
+                        </div>
+                    </div>
+
+                    <!-- 탭 2: 위치(드래그 안내 + 중앙 초기화) 및 밝기(슬림 바) -->
+                    <div class="editor-tab-panel" id="tab-panel-adjust">
+                        <div id="bg-position-ui">
+                            <div class="bg-pos-info">
+                                <h3 id="ui-pos-title">배경이미지 위치</h3>
+                                <span class="bg-pos-desc" id="ui-pos-desc">미리보기를 직접 드래그해 위치를 맞추세요</span>
+                            </div>
+                            <button type="button" class="bg-pos-reset-btn" id="ui-pos-reset" onclick="resetBgPosition()">중앙 초기화</button>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-bottom:2px;">
+                                <span id="ui-bright-title">배경 어두움 조절</span>
+                                <span id="brightness-label" style="font-weight:normal; font-size:11.5px; color:var(--text-muted);">(원본)</span>
+                            </h3>
+                            <input type="range" class="pill-slider" id="brightness-slider" min="-60" max="65" value="0" oninput="updateBackgroundState()">
+                        </div>
+                    </div>
+
+                    <!-- 탭 3: 글자 및 색상 -->
+                    <div class="editor-tab-panel" id="tab-panel-text">
+                        <h3 id="ui-font-title">글자 폰트 설정</h3>
+                        <select id="font-preset" onchange="applyFont()" style="margin-bottom:2px;"></select>
+
+                        <h3 id="ui-size-title">글자 크기 및 정렬</h3>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input type="range" class="pill-slider" id="fontsize-slider" min="14" max="46" value="20" oninput="applyTextSize()" style="flex:1;">
+                            <select id="align-preset" onchange="applyAlign()" style="width:120px; margin-bottom:0;">
+                                <option value="center" id="opt-align-center">가운데 정렬</option>
+                                <option value="left" id="opt-align-left">왼쪽 정렬</option>
+                                <option value="right" id="opt-align-right">오른쪽 정렬</option>
+                            </select>
+                        </div>
+
+                        <h3 id="ui-color-title">글자 색상</h3>
+                        <div class="text-color-btns">
+                            <button type="button" id="tcolor-white" class="active" onclick="setTextColorMode('white')">흰색</button>
+                            <button type="button" id="tcolor-black" onclick="setTextColorMode('black')">검정</button>
+                            <button type="button" id="tcolor-custom" onclick="setTextColorMode('custom')">컬러 조절 ▾</button>
+                        </div>
+                        <div id="custom-text-color-bar">
+                            <div class="color-bar-block">
+                                <div class="color-bar-meta">
+                                    <span id="ui-spectrum-label">색상 스펙트럼</span>
+                                    <span id="custom-color-preview" style="font-weight:bold;">적용됨</span>
+                                </div>
+                                <input type="range" class="color-slider" id="text-hue-slider" min="0" max="100" value="34" oninput="applyCustomTextHue()">
+                            </div>
+                            <div class="color-bar-block">
+                                <div class="color-bar-meta">
+                                    <span id="ui-tone-label">진하기 / 밝기</span>
+                                    <span id="tone-val-label">55%</span>
+                                </div>
+                                <input type="range" class="color-slider" id="text-light-slider" min="0" max="100" value="55" oninput="applyCustomTextHue()">
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <div class="settings-footer">
+                    <button type="button" id="download-card-btn" onclick="downloadCardImage()">이미지로 저장하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const KOR_DIR = './nkrv_bible_json_output';
+        const ENG_DIR = './niv';
+
+        const imageCategories = {
+            landscape: [
+                './image/landscape/landscape1.jpg',
+                './image/landscape/landscape2.jpeg'
+            ],
+            tiny_life: [
+                './image/tiny_life/tiny_life1.jpeg',
+                './image/tiny_life/tiny_life2.jpeg'
+            ]
+        };
+
+        // 2. 한/영 다국어 폰트 목록 (영문 모드에서 한글 완전 제거 + 영문 설명 제공)
+        const fontOptions = [
+            { value: "'SUIT', sans-serif", ko: "수트체 (깔끔한 기본)", en: "SUIT (Clean Modern Sans)" },
+            { value: "'Gowun Dodum', sans-serif", ko: "고운돋움 (단정한 돋움)", en: "Gowun Dodum (Soft Classic Sans)" },
+            { value: "'IBM Plex Sans KR', 'Gulim', sans-serif", ko: "IBM 플렉스 (모던 고딕)", en: "IBM Plex Sans (Crisp Geometric)" },
+            { value: "'Nanum Myeongjo', serif", ko: "나눔명조 (전통 세리프)", en: "Nanum Myeongjo (Traditional Serif)" },
+            { value: "'Jua', sans-serif", ko: "주아체 (동글동글)", en: "Jua (Playful Rounded)" },
+            { value: "'Gaegu', cursive", ko: "개구쟁이체 (귀여운 손글씨)", en: "Gaegu (Cute Handwritten)" },
+            { value: "'Nanum Brush Script', cursive", ko: "나눔붓글씨 (감성 캘리그라피)", en: "Nanum Brush (Calligraphy)" }
+        ];
+
+        const paletteData = {
+            fundamental: [
+                '#ffffff', '#0f172a', '#27272a', '#374151', '#1e293b', '#1e3a8a',
+                '#312e81', '#4c1d95', '#7f1d1d', '#78350f', '#064e3b', '#115e59'
+            ],
+            pastelLight: [
+                '#f6efe2', '#fde68a', '#bbf7d0', '#bae6fd', '#ddd6fe', '#fbcfe8'
+            ],
+            pastelDeep: [
+                '#c08497', '#d98a6c', '#6b9e78', '#5b8fb9', '#8b7aa8', '#9c8574'
+            ],
+            twotone: [
+                'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
+                'linear-gradient(135deg, #1f2937 0%, #9ca3af 100%)',
+                'linear-gradient(135deg, #1e3a8a 0%, #38bdf8 100%)',
+                'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+                'linear-gradient(135deg, #064e3b 0%, #34d399 100%)',
+                'linear-gradient(135deg, #4c1d95 0%, #f472b6 100%)',
+                'linear-gradient(135deg, #31102f 0%, #be185d 100%)',
+                'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+                'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+                'linear-gradient(135deg, #fef08a 0%, #10b981 100%)',
+                'linear-gradient(135deg, #67e8f9 0%, #3b82f6 100%)',
+                'linear-gradient(135deg, #fbc2eb 0%, #6366f1 100%)'
+            ]
+        };
+
+        const spectrumAnchors = [
+            { pos: 0,   rgb: [220, 38, 38] },
+            { pos: 11,  rgb: [234, 88, 12] },
+            { pos: 22,  rgb: [217, 164, 6] },
+            { pos: 34,  rgb: [101, 138, 20] },
+            { pos: 46,  rgb: [21, 128, 61] },
+            { pos: 58,  rgb: [13, 148, 136] },
+            { pos: 70,  rgb: [37, 99, 235] },
+            { pos: 80,  rgb: [30, 58, 138] },
+            { pos: 90,  rgb: [124, 58, 237] },
+            { pos: 100, rgb: [219, 39, 119] }
+        ];
+
+        const HUE_GRADIENT = 'linear-gradient(to right, #dc2626 0%, #ea580c 11%, #eab308 22%, #65a30d 34%, #15803d 46%, #0d9488 58%, #2563eb 70%, #1e3a8a 80%, #7c3aed 90%, #db2777 100%)';
+
+        const i18n = {
+            ko: {
+                appTitle: '성경 작업공간',
+                createCard: '말씀 카드 생성',
+                confirmSelect: '선택 완료 (편집기 열기)',
+                cancelSelect: '취소 및 복귀',
+                searchTitle: '빠른 말씀 검색',
+                searchPlaceholder: '약어(창 1:1) 또는 단어...',
+                searchBtn: '검색',
+                chapterPlaceholder: '장 (전체)',
+                versePlaceholder: '절 (전체)',
+                openPassage: '말씀 열기',
+                historyTitle: '최근 열어본 말씀',
+                clearHistory: '지우기 ↺',
+                exportHistory: '기록 저장 (.txt)',
+                dockMenu: '▲ 메뉴',
+                dockCard: '말씀 카드',
+                dockDone: '선택 완료',
+                dockCancel: '취소',
+                editorTitle: '말씀 이미지 편집기',
+                tabBg: '규격 · 배경',
+                tabAdjust: '위치 · 밝기',
+                tabText: '글자 · 색상',
+                dimTitle: '카드 규격 선택',
+                dimMobile: '모바일 배경화면 (9:16)',
+                dimSns: 'SNS 정사각형 (1:1)',
+                dimPc: 'PC 배경화면 (16:9)',
+                catTitle: '배경 테마 선택',
+                catLandscape: '웅대한 랜드스케이프',
+                catTiny: '생명력 있는 자연',
+                catPalette: '단색 / 그라데이션 팔레트',
+                galleryLabel: '섬네일 탐색',
+                randomBtn: '랜덤',
+                palSolid: '선명한 단색',
+                palPastel: '파스텔 톤 (소프트 / 딥 파스텔)',
+                palTwotone: '투톤',
+                posTitle: '배경이미지 위치',
+                posDesc: '미리보기를 직접 드래그해 위치를 맞추세요',
+                posReset: '중앙 초기화',
+                brightTitle: '배경 어두움 조절',
+                brightOrig: '(원본)',
+                brightLight: (p) => `(${p}% 밝게)`,
+                brightDark: (p) => `(${p}% 어둡게)`,
+                fontTitle: '글자 폰트 설정',
+                colorTitle: '글자 색상',
+                colorWhite: '흰색',
+                colorBlack: '검정',
+                colorCustom: '컬러 조절 ▾',
+                spectrumLabel: '색상 스펙트럼',
+                colorApplied: '적용됨',
+                toneLabel: '진하기 / 밝기',
+                sizeTitle: '글자 크기 및 정렬',
+                alignCenter: '가운데 정렬',
+                alignLeft: '왼쪽 정렬',
+                alignRight: '오른쪽 정렬',
+                saveImg: '이미지로 저장하기',
+                shareImg: '이미지 저장 / 공유하기',
+                fsBack: '돌아가기',
+                fsSave: '이미지 저장',
+                fsShare: '저장 / 공유',
+                searching: '검색 중입니다...',
+                noResults: '검색 결과가 없습니다.',
+                shortcut: '바로가기:',
+                loading: '데이터를 불러오는 중입니다...',
+                toastSelectHint: "카드에 담을 말씀을 터치해 선택한 뒤 '선택 완료'를 눌러주세요.",
+                toastNoSelection: '선택된 말씀이 없습니다. 카드에 담을 말씀을 먼저 클릭해 주세요.',
+                toastChapterMin: '장 번호는 1 이상의 숫자로 입력해 주세요.',
+                toastNeedChapter: '특정 절로 이동하려면 장 번호도 함께 입력해 주세요.',
+                toastMaxChapter: (name, max) => `${name}는 ${max}장까지 있습니다.`,
+                toastMaxVerse: (name, ch, max) => `${name} ${ch}장은 ${max}절까지 있습니다.`,
+                confirmClear: '열어본 기록을 모두 지우시겠습니까?'
+            },
+            en: {
+                appTitle: 'Bible Workspace',
+                createCard: 'Create Verse Card',
+                confirmSelect: 'Done (Open Editor)',
+                cancelSelect: 'Cancel',
+                searchTitle: 'Quick Search',
+                searchPlaceholder: 'Ref (창 1:1) or keyword...',
+                searchBtn: 'Search',
+                chapterPlaceholder: 'Ch (All)',
+                versePlaceholder: 'Ver (All)',
+                openPassage: 'Open Passage',
+                historyTitle: 'Recent Passages',
+                clearHistory: 'Clear ↺',
+                exportHistory: 'Export (.txt)',
+                dockMenu: '▲ Menu',
+                dockCard: 'Verse Card',
+                dockDone: 'Done',
+                dockCancel: 'Cancel',
+                editorTitle: 'Verse Card Editor',
+                tabBg: 'Size · BG',
+                tabAdjust: 'Pos · Dim',
+                tabText: 'Font · Color',
+                dimTitle: 'Card Aspect Ratio',
+                dimMobile: 'Mobile Wallpaper (9:16)',
+                dimSns: 'SNS Square (1:1)',
+                dimPc: 'Desktop Wallpaper (16:9)',
+                catTitle: 'Background Theme',
+                catLandscape: 'Grand Landscape',
+                catTiny: 'Tiny Nature',
+                catPalette: 'Solid / Gradient Palette',
+                galleryLabel: 'Thumbnails',
+                randomBtn: 'Random',
+                palSolid: 'Solid Colors',
+                palPastel: 'Pastel (Soft / Deep)',
+                palTwotone: 'Two-Tone Gradients',
+                posTitle: 'Background Position',
+                posDesc: 'Drag the preview directly to reposition',
+                posReset: 'Center',
+                brightTitle: 'Background Brightness',
+                brightOrig: '(Original)',
+                brightLight: (p) => `(+${p}% Bright)`,
+                brightDark: (p) => `(-${p}% Dark)`,
+                fontTitle: 'Typography',
+                colorTitle: 'Text Color',
+                colorWhite: 'White',
+                colorBlack: 'Black',
+                colorCustom: 'Custom ▾',
+                spectrumLabel: 'Color Spectrum',
+                colorApplied: 'Active',
+                toneLabel: 'Tone / Brightness',
+                sizeTitle: 'Font Size & Align',
+                alignCenter: 'Center',
+                alignLeft: 'Left',
+                alignRight: 'Right',
+                saveImg: 'Save as Image',
+                shareImg: 'Save / Share Image',
+                fsBack: 'Back',
+                fsSave: 'Save Image',
+                fsShare: 'Save / Share',
+                searching: 'Searching...',
+                noResults: 'No results found.',
+                shortcut: 'Go to:',
+                loading: 'Loading passage...',
+                toastSelectHint: "Tap verses to select, then tap 'Done'.",
+                toastNoSelection: 'No verses selected. Please select at least one verse.',
+                toastChapterMin: 'Chapter number must be 1 or greater.',
+                toastNeedChapter: 'Please enter a chapter number to jump to a verse.',
+                toastMaxChapter: (name, max) => `${name} has ${max} chapters.`,
+                toastMaxVerse: (name, ch, max) => `${name} Ch.${ch} has ${max} verses.`,
+                confirmClear: 'Clear all reading history?'
+            }
+        };
+
+        let activeCategory = 'landscape';
+        let currentImageIndex = 0;
+        let selectedPaletteStyle = '#1e293b';
+        let isSelectMode = false;
+        let currentTextColor = '#ffffff';
+        let currentTextShadowStyle = '0 1px 4px rgba(0,0,0,0.35)';
+        let currentPreviewScale = 1;
+        let bgPosX = 50;
+        let bgPosY = 50;
+        let uiLang = localStorage.getItem('bible_ui_lang') || 'ko';
+        let isGlobalDark = localStorage.getItem('bible_global_dark') === '1';
+
+        const bibleMap = {
+            "창": { ko: "창세기", en: "Genesis" }, "출": { ko: "출애굽기", en: "Exodus" }, "레": { ko: "레위기", en: "Leviticus" },
+            "민": { ko: "민수기", en: "Numbers" }, "신": { ko: "신명기", en: "Deuteronomy" }, "수": { ko: "여호수아", en: "Joshua" },
+            "삿": { ko: "사사기", en: "Judges" }, "룻": { ko: "룻기", en: "Ruth" }, "삼상": { ko: "사무엘상", en: "1 Samuel" },
+            "삼하": { ko: "사무엘하", en: "2 Samuel" }, "왕상": { ko: "열왕기상", en: "1 Kings" }, "왕하": { ko: "열왕기하", en: "2 Kings" },
+            "대상": { ko: "역대상", en: "1 Chronicles" }, "대하": { ko: "역대하", en: "2 Chronicles" }, "스": { ko: "에스라", en: "Ezra" },
+            "느": { ko: "느헤미야", en: "Nehemiah" }, "에": { ko: "에스더", en: "Esther" }, "욥": { ko: "욥기", en: "Job" },
+            "시": { ko: "시편", en: "Psalms" }, "잠": { ko: "잠언", en: "Proverbs" }, "전": { ko: "전도서", en: "Ecclesiastes" },
+            "아": { ko: "아가", en: "Song of Solomon" }, "사": { ko: "이사야", en: "Isaiah" }, "렘": { ko: "예레미야", en: "Jeremiah" },
+            "애": { ko: "예레미야애가", en: "Lamentations" }, "겔": { ko: "에스겔", en: "Ezekiel" }, "단": { ko: "다니엘", en: "Daniel" },
+            "호": { ko: "호세아", en: "Hosea" }, "욜": { ko: "요엘", en: "Joel" }, "암": { ko: "아모스", en: "Amos" },
+            "옵": { ko: "오바댜", en: "Obadiah" }, "욘": { ko: "요나", en: "Jonah" }, "미": { ko: "미가", en: "Micah" },
+            "나": { ko: "나훔", en: "Nahum" }, "합": { ko: "하박국", en: "Habakkuk" }, "습": { ko: "스바냐", en: "Zephaniah" },
+            "학": { ko: "학개", en: "Haggai" }, "슥": { ko: "스가랴", en: "Zechariah" }, "말": { ko: "말라기", en: "Malachi" },
+            "마": { ko: "마태복음", en: "Matthew" }, "막": { ko: "마가복음", en: "Mark" }, "눅": { ko: "누가복음", en: "Luke" },
+            "요": { ko: "요한복음", en: "John" }, "행": { ko: "사도행전", en: "Acts" }, "롬": { ko: "로마서", en: "Romans" },
+            "고전": { ko: "고린도전서", en: "1 Corinthians" }, "고후": { ko: "고린도후서", en: "2 Corinthians" },
+            "갈": { ko: "갈라디아서", en: "Galatians" }, "엡": { ko: "에베소서", en: "Ephesians" }, "빌": { ko: "빌립보서", en: "Philippians" },
+            "골": { ko: "골로새서", en: "Colossians" }, "살전": { ko: "데살로니가전서", en: "1 Thessalonians" }, "살후": { ko: "데살로니가후서", en: "2 Thessalonians" },
+            "딤전": { ko: "디모데전서", en: "1 Timothy" }, "딤후": { ko: "디모데후서", en: "2 Timothy" }, "딛": { ko: "디도서", en: "Titus" },
+            "몬": { ko: "빌레몬서", en: "Philemon" }, "히": { ko: "히브리서", en: "Hebrews" }, "약": { ko: "야고보서", en: "James" },
+            "벧전": { ko: "베드로전서", en: "1 Peter" }, "벧후": { ko: "베드로후서", en: "2 Peter" }, "요일": { ko: "요한1서", en: "1 John" },
+            "요이": { ko: "요한2서", en: "2 John" }, "요삼": { ko: "요한3서", en: "3 John" }, "유": { ko: "유다서", en: "Jude" },
+            "계": { ko: "요한계시록", en: "Revelation" }
+        };
+
+        const maxChaptersMap = {
+            "창":50, "출":40, "레":27, "민":36, "신":34, "수":24, "삿":21, "룻":4, "삼상":31, "삼하":24,
+            "왕상":22, "왕하":25, "대상":29, "대하":36, "스":10, "느":13, "에":10, "욥":42, "시":150, "잠":31,
+            "전":12, "아":8, "사":66, "렘":52, "애":5, "겔":48, "단":12, "호":14, "욜":3, "암":9,
+            "옵":1, "욘":4, "미":7, "나":3, "합":3, "습":3, "학":2, "슥":14, "말":4,
+            "마":28, "막":16, "눅":24, "요":21, "행":28, "롬":16, "고전":16, "고후":13, "갈":6, "엡":6,
+            "빌":4, "골":4, "살전":5, "살후":3, "딤전":6, "딤후":4, "딛":3, "몬":1, "히":13, "약":5,
+            "벧전":5, "벧후":3, "요일":5, "요이":1, "요삼":1, "유":1, "계":22
+        };
+
+        let koBibleCache = {};
+        let enBibleCache = {};
+        let readHistory = JSON.parse(localStorage.getItem('bible_history')) || [];
+        let toastTimer = null;
+
+        function t(key) {
+            return (i18n[uiLang] && i18n[uiLang][key]) || i18n.ko[key] || key;
+        }
+
+        // ==========================================
+        // 전역 다크모드 (전체 UI + 열려있는 모든 리딩창 자동 연동)
+        // ==========================================
+        function applyGlobalDarkMode(enabled) {
+            isGlobalDark = Boolean(enabled);
+            localStorage.setItem('bible_global_dark', isGlobalDark ? '1' : '0');
+            document.body.classList.toggle('app-dark', isGlobalDark);
+
+            const globalBtn = document.getElementById('global-dark-btn');
+            const railBtn = document.getElementById('rail-dark-btn');
+            const sunIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+            const moonIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
+            if (globalBtn) {
+                globalBtn.classList.toggle('dark-active', isGlobalDark);
+                globalBtn.innerHTML = isGlobalDark ? sunIcon : moonIcon;
+            }
+            if (railBtn) railBtn.innerHTML = isGlobalDark ? sunIcon : moonIcon;
+
+            document.querySelectorAll('.reading-window').forEach(win => {
+                win.classList.toggle('dark-mode', isGlobalDark);
+                const winDarkBtn = win.querySelector('.dark-toggle-btn');
+                if (winDarkBtn) winDarkBtn.classList.toggle('active', isGlobalDark);
+            });
+
+            updateAllPillSliderFills();
+        }
+
+        function toggleGlobalDarkMode() {
+            applyGlobalDarkMode(!isGlobalDark);
+        }
+
+        // ==========================================
+        // 전체 UI 언어 전환 (KR / EN) + 폰트 목록 영문화 + 리딩창 한/영 순서 반전
+        // ==========================================
+        function toggleUiLanguage() {
+            uiLang = uiLang === 'ko' ? 'en' : 'ko';
+            localStorage.setItem('bible_ui_lang', uiLang);
+            applyUiLanguage();
+        }
+
+        function populateFontDropdown() {
+            const select = document.getElementById('font-preset');
+            if (!select) return;
+            const prevVal = select.value || fontOptions[0].value;
+            select.innerHTML = '';
+            fontOptions.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.value;
+                opt.textContent = uiLang === 'en' ? item.en : item.ko;
+                select.appendChild(opt);
+            });
+            select.value = prevVal;
+        }
+
+        function formatWindowTitle(abbr, chapter) {
+            const names = bibleMap[abbr];
+            if (uiLang === 'en') {
+                return `${names.en} | ${names.ko} ${chapter === 'all' ? 'All' : 'Ch. ' + chapter}`;
+            }
+            return `${names.ko} | ${names.en} ${chapter === 'all' ? '전체' : chapter + '장'}`;
+        }
+
+        function applyUiLanguage() {
+            document.documentElement.lang = uiLang;
+            document.body.classList.toggle('lang-en', uiLang === 'en');
+
+            const langBtn = document.getElementById('lang-toggle-btn');
+            if (langBtn) langBtn.innerText = uiLang === 'ko' ? 'EN' : 'KR';
+
+            const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            setText('ui-app-title', t('appTitle'));
+            setText('start-select-btn', t('createCard'));
+            setText('confirm-select-btn', t('confirmSelect'));
+            setText('cancel-select-btn', t('cancelSelect'));
+            setText('ui-search-title', t('searchTitle'));
+            setText('search-btn', t('searchBtn'));
+            setText('open-passage-btn', t('openPassage'));
+            setText('ui-history-title', t('historyTitle'));
+            setText('clear-history-btn', t('clearHistory'));
+            setText('export-history-btn', t('exportHistory'));
+            setText('dock-menu-btn', t('dockMenu'));
+            setText('dock-cancel-btn', t('dockCancel'));
+
+            const searchIn = document.getElementById('search-input');
+            if (searchIn) searchIn.placeholder = t('searchPlaceholder');
+            const chIn = document.getElementById('chapter-input');
+            if (chIn) chIn.placeholder = t('chapterPlaceholder');
+            const vIn = document.getElementById('verse-input');
+            if (vIn) vIn.placeholder = t('versePlaceholder');
+
+            setText('ui-editor-title', t('editorTitle'));
+            setText('tab-btn-bg', t('tabBg'));
+            setText('tab-btn-adjust', t('tabAdjust'));
+            setText('tab-btn-text', t('tabText'));
+            setText('ui-dim-title', t('dimTitle'));
+            setText('opt-dim-mobile', t('dimMobile'));
+            setText('opt-dim-sns', t('dimSns'));
+            setText('opt-dim-pc', t('dimPc'));
+            setText('ui-cat-title', t('catTitle'));
+            setText('opt-cat-landscape', t('catLandscape'));
+            setText('opt-cat-tiny', t('catTiny'));
+            setText('opt-cat-palette', t('catPalette'));
+            setText('ui-gallery-label', t('galleryLabel'));
+            setText('ui-random-btn', t('randomBtn'));
+            setText('ui-pal-solid', t('palSolid'));
+            setText('ui-pal-pastel', t('palPastel'));
+            setText('ui-pal-twotone', t('palTwotone'));
+            setText('ui-pos-title', t('posTitle'));
+            setText('ui-pos-desc', t('posDesc'));
+            setText('ui-pos-reset', t('posReset'));
+            setText('ui-bright-title', t('brightTitle'));
+            setText('ui-font-title', t('fontTitle'));
+            setText('ui-color-title', t('colorTitle'));
+            setText('tcolor-white', t('colorWhite'));
+            setText('tcolor-black', t('colorBlack'));
+            setText('tcolor-custom', t('colorCustom'));
+            setText('ui-spectrum-label', t('spectrumLabel'));
+            setText('custom-color-preview', t('colorApplied'));
+            setText('ui-tone-label', t('toneLabel'));
+            setText('ui-size-title', t('sizeTitle'));
+            setText('opt-align-center', t('alignCenter'));
+            setText('opt-align-left', t('alignLeft'));
+            setText('opt-align-right', t('alignRight'));
+            setText('fs-back-label', t('fsBack'));
+
+            populateFontDropdown();
+
+            const bookSelect = document.getElementById('book-select');
+            const prevBook = bookSelect ? bookSelect.value : '창';
+            populateDropdown();
+            if (bookSelect && prevBook) bookSelect.value = prevBook;
+
+            document.querySelectorAll('.reading-window').forEach(win => {
+                const abbr = win.getAttribute('data-abbr');
+                const ch = win.getAttribute('data-chapter');
+                if (abbr && ch) {
+                    const titleEl = win.querySelector('.window-title-text');
+                    if (titleEl) titleEl.innerText = formatWindowTitle(abbr, ch);
+                }
+                win.querySelectorAll('.chapter-title').forEach(chEl => {
+                    const chNum = chEl.getAttribute('data-chnum');
+                    if (chNum) {
+                        chEl.innerText = uiLang === 'en' ? `Chapter ${chNum} (${chNum}장)` : `${chNum}장 (Chapter ${chNum})`;
+                    }
+                });
+            });
+
+            renderHistory();
+            syncMobileDockSelectState();
+            updateDownloadButtonLabel();
+            updateBackgroundState();
+        }
+
+        // ==========================================
+        // 슬림 슬라이더 트랙 채우기(--slider-bg) 업데이트
+        // ==========================================
+        function updatePillSliderFill(sliderEl, isBipolarCenter = false) {
+            if (!sliderEl) return;
+            const min = parseFloat(sliderEl.min) || 0;
+            const max = parseFloat(sliderEl.max) || 100;
+            const val = parseFloat(sliderEl.value) || 0;
+            const pct = ((val - min) / (max - min)) * 100;
+
+            const trackColor = getComputedStyle(document.body).getPropertyValue('--pill-track').trim() || '#e2e8f0';
+            const fillColor = getComputedStyle(document.body).getPropertyValue('--pill-fill').trim() || '#334155';
+
+            let grad;
+            if (isBipolarCenter) {
+                const zeroPct = ((0 - min) / (max - min)) * 100;
+                const low = Math.min(zeroPct, pct);
+                const high = Math.max(zeroPct, pct);
+                grad = `linear-gradient(to right, ${trackColor} 0%, ${trackColor} ${low}%, ${fillColor} ${low}%, ${fillColor} ${high}%, ${trackColor} ${high}%, ${trackColor} 100%)`;
+            } else {
+                grad = `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${pct}%, ${trackColor} ${pct}%, ${trackColor} 100%)`;
+            }
+            sliderEl.style.setProperty('--slider-bg', grad);
+        }
+
+        function updateAllPillSliderFills() {
+            updatePillSliderFill(document.getElementById('brightness-slider'), true);
+            updatePillSliderFill(document.getElementById('fontsize-slider'), false);
+            const hueSlider = document.getElementById('text-hue-slider');
+            if (hueSlider) hueSlider.style.setProperty('--slider-bg', HUE_GRADIENT);
+        }
+
+        // ==========================================
+        // 기기 및 반응형 레이아웃 모드 판별
+        // ==========================================
+        function getLayoutMode() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            if (h <= 520 && w > h) return 'mobile-landscape';
+            if (w <= 767) return 'mobile-portrait';
+            if (w <= 1023) return 'tablet';
+            return 'desktop';
+        }
+
+        function isRealMobileDevice() {
+            const uaMobile = navigator.userAgentData ? navigator.userAgentData.mobile : /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+            const coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            return Boolean(uaMobile || (coarsePointer && navigator.maxTouchPoints > 0));
+        }
+
+        function updateDownloadButtonLabel() {
+            const btn = document.getElementById('download-card-btn');
+            const fsSaveLabel = document.getElementById('fs-save-label');
+            const canShareFiles = isRealMobileDevice() && typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
+            if (btn) btn.innerText = canShareFiles ? t('shareImg') : t('saveImg');
+            if (fsSaveLabel) fsSaveLabel.innerText = canShareFiles ? t('fsShare') : t('fsSave');
+        }
+
+        function syncResponsiveUI() {
+            const mode = getLayoutMode();
+            const sidebar = document.getElementById('sidebar');
+            const rail = document.getElementById('collapsed-rail');
+            const backdrop = document.getElementById('mobile-backdrop');
+            const dock = document.getElementById('mobile-bottom-dock');
+            const collapseIcon = document.getElementById('sidebar-collapse-icon');
+
+            sidebar.style.transform = '';
+            sidebar.style.transition = '';
+
+            if (mode === 'desktop') {
+                sidebar.classList.remove('sheet-open', 'drawer-open');
+                backdrop.classList.remove('visible');
+                dock.classList.remove('hidden');
+                collapseIcon.innerText = '◀';
+                rail.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+            } else if (mode === 'mobile-portrait') {
+                sidebar.classList.remove('collapsed', 'drawer-open');
+                rail.style.display = 'none';
+                collapseIcon.innerText = '✕';
+                const isOpen = sidebar.classList.contains('sheet-open');
+                backdrop.classList.toggle('visible', isOpen);
+                dock.classList.toggle('hidden', isOpen);
+            } else {
+                sidebar.classList.remove('collapsed', 'sheet-open');
+                rail.style.display = 'none';
+                collapseIcon.innerText = '◀';
+                const isOpen = sidebar.classList.contains('drawer-open');
+                backdrop.classList.toggle('visible', isOpen);
+            }
+
+            if (document.getElementById('img-modal').style.display === 'flex') {
+                requestAnimationFrame(fitPreviewToContainer);
+            }
+        }
+
+        function toggleSidebar() {
+            const mode = getLayoutMode();
+            const sidebar = document.getElementById('sidebar');
+            const rail = document.getElementById('collapsed-rail');
+            const backdrop = document.getElementById('mobile-backdrop');
+            const dock = document.getElementById('mobile-bottom-dock');
+
+            sidebar.style.transform = '';
+            sidebar.style.transition = '';
+
+            if (mode === 'desktop') {
+                sidebar.classList.toggle('collapsed');
+                rail.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+            } else if (mode === 'mobile-portrait') {
+                const isOpen = sidebar.classList.toggle('sheet-open');
+                backdrop.classList.toggle('visible', isOpen);
+                dock.classList.toggle('hidden', isOpen);
+            } else {
+                const isOpen = sidebar.classList.toggle('drawer-open');
+                backdrop.classList.toggle('visible', isOpen);
+            }
+        }
+
+        function openMobileSheet() {
+            const mode = getLayoutMode();
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('mobile-backdrop');
+            const dock = document.getElementById('mobile-bottom-dock');
+            sidebar.style.transform = '';
+            sidebar.style.transition = '';
+            if (mode === 'mobile-portrait') {
+                sidebar.classList.add('sheet-open');
+                backdrop.classList.add('visible');
+                dock.classList.add('hidden');
+            } else {
+                sidebar.classList.add('drawer-open');
+                backdrop.classList.add('visible');
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('mobile-backdrop');
+            const dock = document.getElementById('mobile-bottom-dock');
+            sidebar.style.transform = '';
+            sidebar.style.transition = '';
+            sidebar.classList.remove('sheet-open', 'drawer-open');
+            backdrop.classList.remove('visible');
+            dock.classList.remove('hidden');
+        }
+
+        function initSheetSwipeToClose() {
+            const sidebar = document.getElementById('sidebar');
+            const targets = [
+                document.getElementById('sheet-handle-wrap'),
+                document.getElementById('sidebar-header')
+            ];
+            let startY = 0;
+            let currentDy = 0;
+            let isSwiping = false;
+
+            targets.forEach(el => {
+                if (!el) return;
+                el.addEventListener('touchstart', (e) => {
+                    if (getLayoutMode() !== 'mobile-portrait' || !sidebar.classList.contains('sheet-open')) return;
+                    if (e.target.closest('button')) return;
+                    startY = e.touches[0].clientY;
+                    currentDy = 0;
+                    isSwiping = true;
+                    sidebar.style.transition = 'none';
+                }, { passive: true });
+
+                el.addEventListener('touchmove', (e) => {
+                    if (!isSwiping) return;
+                    const dy = e.touches[0].clientY - startY;
+                    if (dy > 0) {
+                        currentDy = dy;
+                        sidebar.style.transform = `translateY(${dy}px)`;
+                    }
+                }, { passive: true });
+
+                el.addEventListener('touchend', () => {
+                    if (!isSwiping) return;
+                    isSwiping = false;
+                    sidebar.style.transition = '';
+                    if (currentDy > 65) closeMobileMenu();
+                    else sidebar.style.transform = '';
+                    currentDy = 0;
+                });
+            });
+        }
+
+        // 미리보기 직접 드래그로 배경 위치 이동 (슬라이더 없이 직관적 제어)
+        function initPreviewBgDrag() {
+            const target = document.getElementById('render-target');
+            if (!target) return;
+
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+            let startPosX = 50;
+            let startPosY = 50;
+
+            target.addEventListener('pointerdown', (e) => {
+                if (activeCategory === 'color_palette') return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startPosX = bgPosX;
+                startPosY = bgPosY;
+                target.classList.add('dragging');
+                target.setPointerCapture(e.pointerId);
+            });
+
+            target.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const scale = currentPreviewScale || 1;
+                const baseW = parseFloat(target.style.width) || 360;
+                const baseH = parseFloat(target.style.height) || 640;
+
+                const dx = (e.clientX - startX) / scale;
+                const dy = (e.clientY - startY) / scale;
+
+                bgPosX = Math.max(0, Math.min(100, Math.round(startPosX - (dx / baseW) * 115)));
+                bgPosY = Math.max(0, Math.min(100, Math.round(startPosY - (dy / baseH) * 115)));
+                updateBackgroundState();
+            });
+
+            const stopDrag = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                target.classList.remove('dragging');
+            };
+            target.addEventListener('pointerup', stopDrag);
+            target.addEventListener('pointercancel', stopDrag);
+        }
+
+        function handleDockSelectAction() {
+            if (!isSelectMode) toggleGlobalSelectMode();
+            else confirmGlobalSelection();
+        }
+
+        function syncMobileDockSelectState() {
+            const selBtn = document.getElementById('dock-select-btn');
+            const cancelBtn = document.getElementById('dock-cancel-btn');
+            if (!selBtn) return;
+
+            if (isSelectMode) {
+                selBtn.innerText = t('dockDone');
+                selBtn.classList.add('accent');
+                cancelBtn.style.display = 'inline-flex';
+            } else {
+                selBtn.innerText = t('dockCard');
+                selBtn.classList.remove('accent');
+                cancelBtn.style.display = 'none';
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2600);
+        }
+
+        window.onload = async () => {
+            isSelectMode = false;
+            if (window.location.protocol === 'file:') {
+                document.getElementById('error-banner').style.display = 'block';
+            }
+            populateDropdown();
+            populateFontDropdown();
+            onBookChange();
+            initColorPalettes();
+            initSheetSwipeToClose();
+            initPreviewBgDrag();
+            applyGlobalDarkMode(isGlobalDark);
+            applyUiLanguage();
+            syncResponsiveUI();
+            updateAllPillSliderFills();
+
+            const previewPane = document.getElementById('preview-pane');
+            if (previewPane && typeof ResizeObserver !== 'undefined') {
+                const ro = new ResizeObserver(() => {
+                    if (document.getElementById('img-modal').style.display === 'flex') {
+                        fitPreviewToContainer();
+                    }
+                });
+                ro.observe(previewPane);
+            }
+
+            window.addEventListener('resize', syncResponsiveUI);
+            window.addEventListener('orientationchange', () => setTimeout(syncResponsiveUI, 150));
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('img-modal');
+                    if (modal.classList.contains('preview-fullscreen')) {
+                        togglePreviewFullscreen(false);
+                    } else if (modal.style.display === 'flex') {
+                        closeImageModal();
+                    }
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                const searchGroup = document.getElementById('search-group');
+                if (searchGroup && !searchGroup.contains(e.target)) {
+                    document.getElementById('search-results').style.display = 'none';
+                }
+            });
+        };
+
+        function populateDropdown() {
+            const select = document.getElementById('book-select');
+            select.innerHTML = '';
+            for (const [abbr, names] of Object.entries(bibleMap)) {
+                let opt = document.createElement('option');
+                opt.value = abbr;
+                opt.textContent = uiLang === 'en'
+                    ? `${names.en} (${names.ko})`
+                    : `[${abbr}] ${names.ko} (${names.en})`;
+                select.appendChild(opt);
+            }
+        }
+
+        function sanitizePositiveInt(inputEl) {
+            const raw = inputEl.value.replace(/[^0-9]/g, '');
+            if (raw === '') {
+                inputEl.value = '';
+                return;
+            }
+            let num = parseInt(raw, 10);
+            if (isNaN(num) || num < 1) inputEl.value = '';
+            else inputEl.value = num;
+        }
+
+        function stepInput(inputId, delta) {
+            const inputEl = document.getElementById(inputId);
+            const raw = inputEl.value.trim();
+            const maxVal = inputEl.getAttribute('data-max') ? parseInt(inputEl.getAttribute('data-max'), 10) : null;
+
+            if (delta > 0) {
+                if (raw === '') inputEl.value = '1';
+                else {
+                    let num = parseInt(raw, 10);
+                    if (isNaN(num) || num < 1) num = 1;
+                    else num += 1;
+                    if (maxVal && num > maxVal) num = maxVal;
+                    inputEl.value = num.toString();
+                }
+            } else if (delta < 0) {
+                if (raw === '') inputEl.value = '';
+                else {
+                    let num = parseInt(raw, 10);
+                    if (isNaN(num) || num <= 1) inputEl.value = '';
+                    else inputEl.value = (num - 1).toString();
+                }
+            }
+
+            if (inputId === 'chapter-input') onChapterChange();
+        }
+
+        function handleSpinKey(e, inputId) {
+            if (e.key === 'ArrowUp') { e.preventDefault(); stepInput(inputId, 1); }
+            else if (e.key === 'ArrowDown') { e.preventDefault(); stepInput(inputId, -1); }
+            else if (e.key === 'Enter') openSelected();
+        }
+
+        async function onBookChange() {
+            const abbr = document.getElementById('book-select').value;
+            const maxCh = maxChaptersMap[abbr] || 150;
+            const chInput = document.getElementById('chapter-input');
+            const vInput = document.getElementById('verse-input');
+            chInput.setAttribute('data-max', maxCh);
+            vInput.removeAttribute('data-max');
+        }
+
+        async function onChapterChange() {
+            const abbr = document.getElementById('book-select').value;
+            const chVal = document.getElementById('chapter-input').value.trim();
+            const vInput = document.getElementById('verse-input');
+            if (!chVal) { vInput.removeAttribute('data-max'); return; }
+            const chNum = parseInt(chVal, 10);
+            const maxCh = maxChaptersMap[abbr];
+            if (maxCh && chNum > maxCh) return;
+
+            const names = bibleMap[abbr];
+            if (koBibleCache[names.ko]) {
+                const chObj = koBibleCache[names.ko].chapters.find(c => parseInt(c.chapter) === chNum);
+                if (chObj && chObj.verses.length > 0) vInput.setAttribute('data-max', chObj.verses.length);
+            }
+        }
+
+        async function fetchJson(filePath) {
+            try {
+                const response = await fetch(filePath);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function executeSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            const resultsBox = document.getElementById('search-results');
+            if (query.length < 2) return;
+
+            resultsBox.innerHTML = `<div style="padding:12px; font-weight:bold; font-size:13px;">${t('searching')}</div>`;
+            resultsBox.style.display = 'block';
+
+            const match = query.match(/^([가-힣a-zA-Z]+)\s*(\d+):?(\d*)/);
+            if (match && bibleMap[match[1]]) {
+                const bookAbbr = match[1];
+                const chapter = match[2];
+                const verse = match[3] || null;
+                const names = bibleMap[bookAbbr];
+
+                resultsBox.innerHTML = '';
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                const label = uiLang === 'en'
+                    ? `${names.en} ${chapter}${verse ? ':' + verse : ''}`
+                    : `${names.ko} ${chapter}장 ${verse ? verse + '절' : ''}`;
+                div.innerHTML = `<b>${t('shortcut')}</b> ${label}`;
+                div.onclick = () => {
+                    validateAndOpenWindow(bookAbbr, chapter, verse, 'both');
+                    resultsBox.style.display = 'none';
+                    if (getLayoutMode() !== 'desktop') closeMobileMenu();
+                };
+                resultsBox.appendChild(div);
+                return;
+            }
+
+            let results = [];
+            const isAsciiQuery = /^[a-zA-Z0-9\s]+$/.test(query);
+            const qLower = query.toLowerCase();
+
+            for (const [abbr, names] of Object.entries(bibleMap)) {
+                if (results.length > 30) break;
+                if (isAsciiQuery) {
+                    const enFile = `${ENG_DIR}/${names.en}.json`;
+                    if (!enBibleCache[names.en]) enBibleCache[names.en] = await fetchJson(enFile);
+                    const bookData = enBibleCache[names.en];
+                    if (bookData) {
+                        for (const ch of bookData.chapters) {
+                            for (const v of ch.verses) {
+                                if (v.text.toLowerCase().includes(qLower)) {
+                                    results.push({abbr, chapter: ch.chapter, verse: v.verse, text: v.text, names});
+                                    if (results.length > 30) break;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const koFile = `${KOR_DIR}/${names.ko}.json`;
+                    if (!koBibleCache[names.ko]) koBibleCache[names.ko] = await fetchJson(koFile);
+                    const bookData = koBibleCache[names.ko];
+                    if (bookData) {
+                        for (const ch of bookData.chapters) {
+                            for (const v of ch.verses) {
+                                if (v.text.includes(query)) {
+                                    results.push({abbr, chapter: ch.chapter, verse: v.verse, text: v.text, names});
+                                    if (results.length > 30) break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            resultsBox.innerHTML = '';
+            if (results.length === 0) {
+                resultsBox.innerHTML = `<div style="padding:12px; font-size:13px;">${t('noResults')}</div>`;
+            } else {
+                results.forEach(res => {
+                    const div = document.createElement('div');
+                    div.className = 'search-item';
+                    const bookLabel = uiLang === 'en' ? res.names.en : res.names.ko;
+                    div.innerHTML = `<b>${bookLabel} ${res.chapter}:${res.verse}</b><div class="search-preview">${res.text}</div>`;
+                    div.onclick = () => {
+                        validateAndOpenWindow(res.abbr, res.chapter, res.verse, 'both');
+                        resultsBox.style.display = 'none';
+                        if (getLayoutMode() !== 'desktop') closeMobileMenu();
+                    };
+                    resultsBox.appendChild(div);
+                });
+            }
+        }
+
+        async function openSelected() {
+            const abbr = document.getElementById('book-select').value;
+            const chapterInput = document.getElementById('chapter-input').value.trim();
+            const verseInput = document.getElementById('verse-input').value.trim();
+            const chapter = chapterInput === '' ? 'all' : chapterInput;
+            const verse = verseInput === '' ? null : verseInput;
+            await validateAndOpenWindow(abbr, chapter, verse, 'both');
+        }
+
+        async function validateAndOpenWindow(abbr, chapter, verse, langMode = 'both') {
+            const names = bibleMap[abbr];
+            const bookDisplay = uiLang === 'en' ? names.en : names.ko;
+            const maxKnownCh = maxChaptersMap[abbr];
+
+            if (chapter !== 'all') {
+                const chNum = parseInt(chapter, 10);
+                if (isNaN(chNum) || chNum < 1) { showToast(t('toastChapterMin')); return; }
+                if (maxKnownCh && chNum > maxKnownCh) { showToast(t('toastMaxChapter')(bookDisplay, maxKnownCh)); return; }
+            } else if (verse !== null) {
+                showToast(t('toastNeedChapter'));
+                return;
+            }
+
+            const koFile = `${KOR_DIR}/${names.ko}.json`;
+            if (!koBibleCache[names.ko]) koBibleCache[names.ko] = await fetchJson(koFile);
+            const koBookData = koBibleCache[names.ko];
+
+            const enFile = `${ENG_DIR}/${names.en}.json`;
+            if (!enBibleCache[names.en]) enBibleCache[names.en] = await fetchJson(enFile);
+            const enBookData = enBibleCache[names.en];
+
+            const refBook = koBookData || enBookData;
+            if (refBook && chapter !== 'all') {
+                const chNum = parseInt(chapter, 10);
+                const totalChapters = refBook.chapters.length;
+                const chData = refBook.chapters.find(c => parseInt(c.chapter, 10) === chNum);
+
+                if (!chData) { showToast(t('toastMaxChapter')(bookDisplay, totalChapters)); return; }
+
+                if (verse !== null) {
+                    const vNum = parseInt(verse, 10);
+                    const maxVerse = chData.verses.length;
+                    const vExists = chData.verses.some(v => parseInt(v.verse, 10) === vNum);
+                    if (isNaN(vNum) || vNum < 1 || !vExists) {
+                        showToast(t('toastMaxVerse')(bookDisplay, chNum, maxVerse));
+                        return;
+                    }
+                }
+            }
+
+            createWindow(abbr, chapter, verse, 'both');
+            if (getLayoutMode() !== 'desktop') closeMobileMenu();
+        }
+
+        function createWindow(abbr, chapter, verse, langMode = 'both') {
+            const id = Date.now();
+            addToHistory(abbr, chapter);
+            renderWindow(abbr, chapter, verse, 'both', id);
+        }
+
+        function zoomText(id, direction) {
+            const contentDiv = document.getElementById(`content-${id}`);
+            if (!contentDiv) return;
+
+            let currentZoom = parseFloat(contentDiv.getAttribute('data-zoom')) || 1.0;
+            currentZoom += (direction * 0.1);
+            if (currentZoom < 0.7) currentZoom = 0.7;
+            if (currentZoom > 2.0) currentZoom = 2.0;
+
+            contentDiv.setAttribute('data-zoom', currentZoom);
+            contentDiv.querySelectorAll('.kor-text').forEach(el => {
+                el.style.fontSize = `${(uiLang === 'en' ? 14.8 : 16) * currentZoom}px`;
+            });
+            contentDiv.querySelectorAll('.eng-text').forEach(el => {
+                el.style.fontSize = `${(uiLang === 'en' ? 16 : 15) * currentZoom}px`;
+            });
+        }
+
+        function toggleWindowLang(id, lang) {
+            const contentDiv = document.getElementById(`content-${id}`);
+            const btn = document.getElementById(`btn-${lang}-${id}`);
+            if (!contentDiv || !btn) return;
+
+            const hideClass = lang === 'kor' ? 'hide-kor' : 'hide-eng';
+            const isHidden = contentDiv.classList.toggle(hideClass);
+
+            if (isHidden) { btn.classList.remove('active'); btn.classList.add('inactive'); }
+            else { btn.classList.remove('inactive'); btn.classList.add('active'); }
+        }
+
+        function toggleWindowDark(id) {
+            const win = document.getElementById(`win-${id}`);
+            const btn = document.getElementById(`btn-dark-${id}`);
+            if (!win || !btn) return;
+            const isDark = win.classList.toggle('dark-mode');
+            btn.classList.toggle('active', isDark);
+        }
+
+        function toggleWindowFullscreen(id) {
+            const win = document.getElementById(`win-${id}`);
+            const btn = document.getElementById(`btn-fs-${id}`);
+            if (!win || !btn) return;
+
+            const isNowFs = !win.classList.contains('fullscreen');
+            document.querySelectorAll('.reading-window.fullscreen').forEach(el => {
+                el.classList.remove('fullscreen');
+                const otherBtn = el.querySelector('.fs-toggle-btn');
+                if (otherBtn) otherBtn.classList.remove('active');
+            });
+
+            if (isNowFs) {
+                win.classList.add('fullscreen');
+                btn.classList.add('active');
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+            } else {
+                win.classList.remove('fullscreen');
+                btn.classList.remove('active');
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+            }
+        }
+
+        async function renderWindow(abbr, chapter, verseTarget, langMode, id) {
+            const container = document.getElementById('windows-container');
+            const win = document.createElement('div');
+            win.className = 'reading-window' + (isGlobalDark ? ' dark-mode' : '');
+            win.id = `win-${id}`;
+            win.setAttribute('data-abbr', abbr);
+            win.setAttribute('data-chapter', chapter);
+
+            const names = bibleMap[abbr];
+            const windowTitle = formatWindowTitle(abbr, chapter);
+
+            win.innerHTML = `
+                <div class="window-header">
+                    <div class="window-header-top">
+                        <span class="window-title-text">${windowTitle}</span>
+                        <button class="icon-btn close-btn mobile-only-close" onclick="document.getElementById('win-${id}').remove()" title="Close">✕</button>
+                    </div>
+                    <div class="header-actions">
+                        <button class="icon-btn lang-btn active" id="btn-kor-${id}" onclick="toggleWindowLang(${id}, 'kor')" title="Korean">한</button>
+                        <button class="icon-btn lang-btn active" id="btn-eng-${id}" onclick="toggleWindowLang(${id}, 'eng')" title="English">EN</button>
+                        <button class="icon-btn" onclick="zoomText(${id}, 1)" title="Zoom In">A+</button>
+                        <button class="icon-btn" onclick="zoomText(${id}, -1)" title="Zoom Out">A-</button>
+                        <button class="icon-btn fs-toggle-btn" id="btn-fs-${id}" onclick="toggleWindowFullscreen(${id})" title="Fullscreen">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <polyline points="9 21 3 21 3 15"></polyline>
+                                <line x1="21" y1="3" x2="14" y2="10"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                        </button>
+                        <button class="icon-btn dark-toggle-btn ${isGlobalDark ? 'active' : ''}" id="btn-dark-${id}" onclick="toggleWindowDark(${id})" title="Dark Mode">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </button>
+                        <button class="icon-btn close-btn desktop-only-close" onclick="document.getElementById('win-${id}').remove()" title="Close">✕</button>
+                    </div>
+                </div>
+                <div class="window-content" id="content-${id}" data-zoom="1.0">
+                    <div style="text-align:center; padding:30px; color:#888;">${t('loading')}</div>
+                </div>
+            `;
+            container.appendChild(win);
+
+            const contentDiv = document.getElementById(`content-${id}`);
+
+            const koFile = `${KOR_DIR}/${names.ko}.json`;
+            if (!koBibleCache[names.ko]) koBibleCache[names.ko] = await fetchJson(koFile);
+            const koBookData = koBibleCache[names.ko];
+
+            const enFile = `${ENG_DIR}/${names.en}.json`;
+            if (!enBibleCache[names.en]) enBibleCache[names.en] = await fetchJson(enFile);
+            const enBookData = enBibleCache[names.en];
+
+            contentDiv.innerHTML = '';
+
+            if (!koBookData && !enBookData) {
+                contentDiv.innerHTML = `
+                    <div style="padding: 10px; color: #ef4444;">
+                        <h3>Data not found</h3>
+                        <ul>
+                            <li><b>${KOR_DIR}/${names.ko}.json</b></li>
+                            <li><b>${ENG_DIR}/${names.en}.json</b></li>
+                        </ul>
+                    </div>`;
+                return;
+            }
+
+            let chaptersToRender = new Set();
+            if (koBookData) koBookData.chapters.forEach(c => chaptersToRender.add(parseInt(c.chapter)));
+            if (enBookData) enBookData.chapters.forEach(c => chaptersToRender.add(parseInt(c.chapter)));
+            let chArray = Array.from(chaptersToRender).sort((a,b)=>a-b);
+            if (chapter !== 'all') chArray = [parseInt(chapter)];
+
+            chArray.forEach(chNum => {
+                if (chapter === 'all' || chArray.length > 1) {
+                    const chHeader = document.createElement('div');
+                    chHeader.className = 'chapter-title';
+                    chHeader.setAttribute('data-chnum', chNum);
+                    chHeader.innerText = uiLang === 'en' ? `Chapter ${chNum} (${chNum}장)` : `${chNum}장 (Chapter ${chNum})`;
+                    contentDiv.appendChild(chHeader);
+                }
+
+                let koVerses = [], enVerses = [];
+                if (koBookData) {
+                    const cData = koBookData.chapters.find(c => parseInt(c.chapter) === chNum);
+                    if (cData) koVerses = cData.verses;
+                }
+                if (enBookData) {
+                    const cData = enBookData.chapters.find(c => parseInt(c.chapter) === chNum);
+                    if (cData) enVerses = cData.verses;
+                }
+
+                let verseNums = new Set([...koVerses.map(v=>parseInt(v.verse)), ...enVerses.map(v=>parseInt(v.verse))]);
+                let vArray = Array.from(verseNums).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+
+                vArray.forEach(vNum => {
+                    const vBlock = document.createElement('div');
+                    vBlock.className = 'verse-block';
+                    vBlock.id = `win-${id}-c${chNum}-v${vNum}`;
+                    vBlock.setAttribute('data-abbr', abbr);
+                    vBlock.setAttribute('data-chnum', chNum);
+                    vBlock.setAttribute('data-vnum', vNum);
+
+                    const chk = document.createElement('input');
+                    chk.type = 'checkbox';
+                    chk.className = 'verse-checkbox';
+                    chk.onclick = (e) => {
+                        e.stopPropagation();
+                        if (isSelectMode) toggleVerseBlockHighlight(vBlock, chk);
+                    };
+
+                    const textGroup = document.createElement('div');
+                    textGroup.className = 'verse-text-group';
+
+                    const koVerseObj = koVerses.find(v => parseInt(v.verse) === vNum);
+                    const rawKor = koVerseObj ? koVerseObj.text : "(텍스트 누락)";
+                    const enVerseObj = enVerses.find(v => parseInt(v.verse) === vNum);
+                    const rawEng = enVerseObj ? enVerseObj.text : "(Text missing)";
+
+                    let innerHTML = '';
+                    innerHTML += `<p class="kor-text" data-raw="${rawKor.replace(/"/g, '&quot;')}"><span class="verse-num kor-verse-num">${vNum}</span>${rawKor}</p>`;
+                    innerHTML += `<p class="eng-text" data-raw="${rawEng.replace(/"/g, '&quot;')}"><span class="verse-num eng-verse-num">${vNum}</span>${rawEng}</p>`;
+
+                    textGroup.innerHTML = innerHTML;
+                    vBlock.appendChild(chk);
+                    vBlock.appendChild(textGroup);
+
+                    vBlock.onclick = () => {
+                        if (isSelectMode) {
+                            chk.checked = !chk.checked;
+                            toggleVerseBlockHighlight(vBlock, chk);
+                        }
+                    };
+
+                    if (isSelectMode) {
+                        chk.classList.add('show-chk');
+                        vBlock.classList.add('selectable');
+                    }
+
+                    contentDiv.appendChild(vBlock);
+                });
+            });
+
+            if (verseTarget && chapter !== 'all') {
+                setTimeout(() => {
+                    const targetEl = document.getElementById(`win-${id}-c${chapter}-v${verseTarget}`);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                        targetEl.style.backgroundColor = 'rgba(251, 191, 36, 0.22)';
+                    }
+                }, 100);
+            }
+        }
+
+        // ==========================================
+        // 글로벌 말씀 선택 모드
+        // ==========================================
+        function toggleGlobalSelectMode() {
+            isSelectMode = true;
+            document.getElementById('start-select-btn').style.display = 'none';
+            document.getElementById('select-actions').style.display = 'flex';
+            syncMobileDockSelectState();
+
+            document.querySelectorAll('.verse-checkbox').forEach(cb => cb.classList.add('show-chk'));
+            document.querySelectorAll('.verse-block').forEach(b => b.classList.add('selectable'));
+
+            if (getLayoutMode() !== 'desktop') {
+                closeMobileMenu();
+                showToast(t('toastSelectHint'));
+            }
+        }
+
+        function cancelGlobalSelection() {
+            isSelectMode = false;
+            document.getElementById('start-select-btn').style.display = 'flex';
+            document.getElementById('select-actions').style.display = 'none';
+            syncMobileDockSelectState();
+
+            document.querySelectorAll('.verse-checkbox').forEach(cb => {
+                cb.classList.remove('show-chk');
+                cb.checked = false;
+            });
+            document.querySelectorAll('.verse-block').forEach(b => b.classList.remove('selectable', 'selected-target'));
+        }
+
+        function toggleVerseBlockHighlight(block, checkbox) {
+            if (checkbox.checked) block.classList.add('selected-target');
+            else block.classList.remove('selected-target');
+        }
+
+        function confirmGlobalSelection() {
+            const checkedBlocks = document.querySelectorAll('.verse-block.selected-target');
+            if (checkedBlocks.length === 0) {
+                showToast(t('toastNoSelection'));
+                return;
+            }
+
+            let combinedCardsHTML = "";
+            let firstBookName = "";
+            let chapters = new Set();
+            let verseNumbers = [];
+
+            checkedBlocks.forEach(b => {
+                const abbr = b.getAttribute('data-abbr');
+                const chNum = parseInt(b.getAttribute('data-chnum'), 10);
+                const vNum = parseInt(b.getAttribute('data-vnum'), 10);
+                const names = bibleMap[abbr];
+
+                if (!firstBookName) firstBookName = uiLang === 'en' ? names.en : names.ko;
+                chapters.add(chNum);
+                verseNumbers.push(vNum);
+
+                const winContent = b.closest('.window-content');
+                const showKor = winContent ? !winContent.classList.contains('hide-kor') : true;
+                const showEng = winContent ? !winContent.classList.contains('hide-eng') : true;
+
+                const kTextEl = b.querySelector('.kor-text');
+                const eTextEl = b.querySelector('.eng-text');
+
+                const korHTML = (kTextEl && showKor) ? `
+                    <div class="card-line-group">
+                        <div>${kTextEl.getAttribute('data-raw')}</div>
+                        <div class="card-inline-ref">${names.ko} ${chNum}장 ${vNum}절</div>
+                    </div>` : '';
+
+                const engHTML = (eTextEl && showEng) ? `
+                    <div class="card-line-group">
+                        <div>${uiLang === 'en' ? eTextEl.getAttribute('data-raw') : `<i>${eTextEl.getAttribute('data-raw')}</i>`}</div>
+                        <div class="card-inline-ref">${names.en} ${chNum}:${vNum}</div>
+                    </div>` : '';
+
+                let blockHTML = `<div class="card-verse-item">`;
+                blockHTML += uiLang === 'en' ? (engHTML + korHTML) : (korHTML + engHTML);
+                blockHTML += `</div>`;
+                combinedCardsHTML += blockHTML;
+            });
+
+            verseNumbers.sort((a, b) => a - b);
+            let verseRef = verseNumbers.length > 1 ? `${verseNumbers[0]}~${verseNumbers[verseNumbers.length-1]}` : `${verseNumbers[0]}`;
+            let chArray = Array.from(chapters).sort((a,b) => a-b);
+            let chRef = chArray.length > 1 ? `${chArray[0]}~${chArray[chArray.length-1]}` : `${chArray[0]}`;
+            const referenceForFilename = uiLang === 'en'
+                ? `${firstBookName}_${chRef}_${verseRef}`
+                : `${firstBookName} ${chRef}장 ${verseRef}절`;
+
+            cancelGlobalSelection();
+            openImageCreator(combinedCardsHTML, "", referenceForFilename);
+        }
+
+        // ==========================================
+        // 이미지 제작기 & 전체화면 미리보기 제어
+        // ==========================================
+        function togglePreviewFullscreen(enable) {
+            const modal = document.getElementById('img-modal');
+            modal.classList.toggle('preview-fullscreen', Boolean(enable));
+            requestAnimationFrame(fitPreviewToContainer);
+        }
+
+        function switchEditorTab(tabName, btnEl) {
+            document.querySelectorAll('.editor-tab-btn').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            document.querySelectorAll('.editor-tab-panel').forEach(p => p.classList.remove('active-tab'));
+            const target = document.getElementById(`tab-panel-${tabName}`);
+            if (target) target.classList.add('active-tab');
+
+            requestAnimationFrame(fitPreviewToContainer);
+        }
+
+        function fitPreviewToContainer() {
+            const pane = document.getElementById('preview-pane');
+            const frame = document.getElementById('preview-frame');
+            const target = document.getElementById('render-target');
+            if (!pane || !frame || !target) return;
+
+            const style = window.getComputedStyle(pane);
+            const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+            const padY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+            const availW = Math.max(90, pane.clientWidth - padX);
+            const availH = Math.max(90, pane.clientHeight - padY);
+
+            const baseW = parseFloat(target.style.width) || 360;
+            const baseH = parseFloat(target.style.height) || 640;
+
+            const isFs = document.getElementById('img-modal').classList.contains('preview-fullscreen');
+            const maxScale = isFs ? 2.2 : 1;
+            currentPreviewScale = Math.min(maxScale, availW / baseW, availH / baseH);
+            frame.style.transform = `scale(${currentPreviewScale})`;
+        }
+
+        function navigatePreviewBg(direction) {
+            if (activeCategory === 'color_palette') {
+                const swatches = Array.from(document.querySelectorAll('#palette-ui .color-swatch'));
+                if (swatches.length === 0) return;
+                let curIdx = swatches.findIndex(s => s.classList.contains('active'));
+                if (curIdx === -1) curIdx = 0;
+                const nextIdx = (curIdx + direction + swatches.length) % swatches.length;
+                swatches[nextIdx].click();
+            } else {
+                navigateGallery(direction);
+            }
+        }
+
+        function initColorPalettes() {
+            const fundContainer = document.getElementById('palette-fundamental');
+            const pastelContainer = document.getElementById('palette-pastel');
+            const twoContainer = document.getElementById('palette-twotone');
+
+            const createSwatch = (styleVal, container, defaultTextColor = 'white', isLightSwatch = false) => {
+                const sw = document.createElement('div');
+                sw.className = 'color-swatch';
+                if (styleVal === '#ffffff') sw.classList.add('is-white');
+                if (isLightSwatch) sw.classList.add('light-swatch');
+                sw.style.background = styleVal;
+                sw.onclick = () => {
+                    document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('active'));
+                    sw.classList.add('active');
+                    selectedPaletteStyle = styleVal;
+                    setTextColorMode(defaultTextColor);
+                    updateBackgroundState();
+                };
+                container.appendChild(sw);
+            };
+
+            paletteData.fundamental.forEach(c => {
+                const isWhite = c === '#ffffff';
+                createSwatch(c, fundContainer, isWhite ? 'black' : 'white', isWhite);
+            });
+            paletteData.pastelLight.forEach(c => createSwatch(c, pastelContainer, 'black', true));
+            paletteData.pastelDeep.forEach(c => createSwatch(c, pastelContainer, 'white', false));
+            paletteData.twotone.forEach(c => {
+                const isLightTwoTone = c.includes('#ffecd2') || c.includes('#f6d365');
+                createSwatch(c, twoContainer, isLightTwoTone ? 'black' : 'white', isLightTwoTone);
+            });
+        }
+
+        function openImageCreator(kor, eng, ref) {
+            const modal = document.getElementById('img-modal');
+            modal.classList.remove('preview-fullscreen');
+            modal.style.display = 'flex';
+
+            document.getElementById('target-verse-text').innerHTML = (kor || "") + (eng || "");
+            document.getElementById('target-verse-ref').innerText = ref;
+
+            document.getElementById('category-select').value = "landscape";
+            document.getElementById('brightness-slider').value = 0;
+            bgPosX = 50;
+            bgPosY = 50;
+
+            const firstTabBtn = document.querySelector('.editor-tab-btn');
+            if (firstTabBtn) switchEditorTab('bg', firstTabBtn);
+
+            setTextColorMode('white');
+            applyDimensions();
+            loadCategoryGallery();
+            applyFont();
+            applyTextSize();
+            applyAlign();
+            updateDownloadButtonLabel();
+            updateAllPillSliderFills();
+
+            requestAnimationFrame(fitPreviewToContainer);
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('img-modal');
+            modal.classList.remove('preview-fullscreen');
+            modal.style.display = 'none';
+        }
+
+        function resetBgPosition() {
+            bgPosX = 50;
+            bgPosY = 50;
+            updateBackgroundState();
+        }
+
+        function loadCategoryGallery() {
+            const cat = document.getElementById('category-select').value;
+            activeCategory = cat;
+
+            const galleryUi = document.getElementById('gallery-ui');
+            const bgPositionUi = document.getElementById('bg-position-ui');
+            const paletteUi = document.getElementById('palette-ui');
+            const renderTarget = document.getElementById('render-target');
+
+            if (cat === 'color_palette') {
+                galleryUi.style.display = 'none';
+                bgPositionUi.style.display = 'none';
+                paletteUi.style.display = 'block';
+                renderTarget.classList.remove('draggable-bg');
+                const swatches = document.querySelectorAll('.color-swatch');
+                if (!document.querySelector('.color-swatch.active') && swatches.length > 4) {
+                    swatches[4].classList.add('active');
+                    selectedPaletteStyle = paletteData.fundamental[4];
+                }
+                updateBackgroundState();
+            } else {
+                galleryUi.style.display = 'block';
+                bgPositionUi.style.display = 'flex';
+                paletteUi.style.display = 'none';
+                renderTarget.classList.add('draggable-bg');
+
+                currentImageIndex = 0;
+                const container = document.getElementById('gallery-container');
+                container.innerHTML = '';
+                const list = imageCategories[cat];
+                list.forEach((imgSrc, idx) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'gallery-thumb';
+                    thumb.style.backgroundImage = `url('${imgSrc}')`;
+                    thumb.onclick = () => selectGalleryImage(idx);
+                    container.appendChild(thumb);
+                });
+                selectGalleryImage(0);
+            }
+            requestAnimationFrame(fitPreviewToContainer);
+        }
+
+        function selectGalleryImage(idx) {
+            const catImages = imageCategories[activeCategory];
+            if (idx >= catImages.length) currentImageIndex = 0;
+            else if (idx < 0) currentImageIndex = catImages.length - 1;
+            else currentImageIndex = idx;
+
+            const thumbs = document.querySelectorAll('.gallery-thumb');
+            thumbs.forEach((t, i) => {
+                if (i === currentImageIndex) t.classList.add('active');
+                else t.classList.remove('active');
+            });
+
+            bgPosX = 50;
+            bgPosY = 50;
+            updateBackgroundState();
+        }
+
+        function navigateGallery(direction) { selectGalleryImage(currentImageIndex + direction); }
+        function shufGallery() { selectGalleryImage(Math.floor(Math.random() * imageCategories[activeCategory].length)); }
+
+        function updateBackgroundState() {
+            const bgEl = document.getElementById('render-bg');
+            const dimEl = document.getElementById('render-dim');
+            const cat = document.getElementById('category-select').value;
+            const sliderEl = document.getElementById('brightness-slider');
+            const sliderVal = parseInt(sliderEl.value, 10) || 0;
+            const labelEl = document.getElementById('brightness-label');
+
+            if (sliderVal === 0) {
+                labelEl.innerText = t('brightOrig');
+                dimEl.style.opacity = '0';
+            } else if (sliderVal < 0) {
+                const brightPct = Math.abs(sliderVal);
+                labelEl.innerText = t('brightLight')(brightPct);
+                dimEl.style.backgroundColor = '#ffffff';
+                dimEl.style.opacity = (brightPct / 100).toString();
+            } else {
+                labelEl.innerText = t('brightDark')(sliderVal);
+                dimEl.style.backgroundColor = '#000000';
+                dimEl.style.opacity = (sliderVal / 100).toString();
+            }
+
+            updatePillSliderFill(sliderEl, true);
+
+            if (cat === 'color_palette') {
+                bgEl.style.backgroundImage = 'none';
+                bgEl.style.background = selectedPaletteStyle;
+            } else {
+                const src = imageCategories[cat][currentImageIndex];
+                bgEl.style.background = 'none';
+                bgEl.style.backgroundImage = `url('${src}')`;
+                bgEl.style.backgroundSize = 'cover';
+                bgEl.style.backgroundRepeat = 'no-repeat';
+                bgEl.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+            }
+        }
+
+        function setTextColorMode(mode) {
+            document.getElementById('tcolor-white').classList.toggle('active', mode === 'white');
+            document.getElementById('tcolor-black').classList.toggle('active', mode === 'black');
+            document.getElementById('tcolor-custom').classList.toggle('active', mode === 'custom');
+
+            const customBar = document.getElementById('custom-text-color-bar');
+            if (mode === 'custom') {
+                customBar.style.display = 'block';
+                applyCustomTextHue();
+            } else {
+                customBar.style.display = 'none';
+                if (mode === 'white') {
+                    currentTextColor = '#ffffff';
+                    currentTextShadowStyle = '0 1px 4px rgba(0,0,0,0.42)';
+                } else {
+                    currentTextColor = '#111827';
+                    currentTextShadowStyle = '0 1px 3px rgba(255,255,255,0.45)';
+                }
+                applyTextColorStyles();
+            }
+            requestAnimationFrame(fitPreviewToContainer);
+        }
+
+        function getSpectrumBaseRGB(pos) {
+            const clamped = Math.max(0, Math.min(100, pos));
+            for (let i = 0; i < spectrumAnchors.length - 1; i++) {
+                const left = spectrumAnchors[i];
+                const right = spectrumAnchors[i + 1];
+                if (clamped >= left.pos && clamped <= right.pos) {
+                    const ratio = (clamped - left.pos) / (right.pos - left.pos);
+                    return [
+                        Math.round(left.rgb[0] + (right.rgb[0] - left.rgb[0]) * ratio),
+                        Math.round(left.rgb[1] + (right.rgb[1] - left.rgb[1]) * ratio),
+                        Math.round(left.rgb[2] + (right.rgb[2] - left.rgb[2]) * ratio)
+                    ];
+                }
+            }
+            return spectrumAnchors[0].rgb;
+        }
+
+        function mixRGB(rgbA, rgbB, tVal) {
+            return [
+                Math.round(rgbA[0] + (rgbB[0] - rgbA[0]) * tVal),
+                Math.round(rgbA[1] + (rgbB[1] - rgbA[1]) * tVal),
+                Math.round(rgbA[2] + (rgbB[2] - rgbA[2]) * tVal)
+            ];
+        }
+
+        function applyCustomTextHue() {
+            const hueSlider = document.getElementById('text-hue-slider');
+            const lightSlider = document.getElementById('text-light-slider');
+            const specPos = parseFloat(hueSlider.value);
+            const tonePos = parseFloat(lightSlider.value);
+            const toneLabel = document.getElementById('tone-val-label');
+            if (toneLabel) toneLabel.innerText = `${Math.round(tonePos)}%`;
+
+            hueSlider.style.setProperty('--slider-bg', HUE_GRADIENT);
+
+            const baseRGB = getSpectrumBaseRGB(specPos);
+            const deepRGB = [
+                Math.round(baseRGB[0] * 0.24 + 10),
+                Math.round(baseRGB[1] * 0.24 + 12),
+                Math.round(baseRGB[2] * 0.24 + 16)
+            ];
+            const brightTintRGB = mixRGB(baseRGB, [255, 255, 255], 0.62);
+
+            let finalRGB;
+            if (tonePos <= 55) finalRGB = mixRGB(deepRGB, baseRGB, tonePos / 55);
+            else finalRGB = mixRGB(baseRGB, brightTintRGB, (tonePos - 55) / 45);
+
+            currentTextColor = `rgb(${finalRGB[0]}, ${finalRGB[1]}, ${finalRGB[2]})`;
+
+            const deepCss = `rgb(${deepRGB[0]}, ${deepRGB[1]}, ${deepRGB[2]})`;
+            const baseCss = `rgb(${baseRGB[0]}, ${baseRGB[1]}, ${baseRGB[2]})`;
+            const brightCss = `rgb(${brightTintRGB[0]}, ${brightTintRGB[1]}, ${brightTintRGB[2]})`;
+            lightSlider.style.setProperty('--slider-bg', `linear-gradient(to right, ${deepCss} 0%, ${baseCss} 55%, ${brightCss} 100%)`);
+
+            const luminance = (0.299 * finalRGB[0] + 0.587 * finalRGB[1] + 0.114 * finalRGB[2]) / 255;
+            if (luminance >= 0.48) {
+                const shadowAlpha = Math.min(0.55, 0.28 + (luminance - 0.48) * 0.5).toFixed(2);
+                currentTextShadowStyle = `0 1px 4px rgba(0, 0, 0, ${shadowAlpha})`;
+            } else {
+                const shadowAlpha = Math.min(0.5, 0.22 + (0.48 - luminance) * 0.55).toFixed(2);
+                currentTextShadowStyle = `0 1px 3px rgba(255, 255, 255, ${shadowAlpha})`;
+            }
+
+            const previewLabel = document.getElementById('custom-color-preview');
+            previewLabel.style.color = currentTextColor;
+            previewLabel.style.background = luminance >= 0.48 ? '#1e293b' : '#f1f5f9';
+            previewLabel.style.padding = '2px 8px';
+            previewLabel.style.borderRadius = '5px';
+
+            applyTextColorStyles();
+        }
+
+        function applyTextColorStyles() {
+            const target = document.getElementById('render-target');
+            const textEl = document.getElementById('target-verse-text');
+            const refEl = document.getElementById('target-verse-ref');
+
+            target.style.color = currentTextColor;
+            textEl.style.color = currentTextColor;
+            refEl.style.color = currentTextColor;
+
+            textEl.style.textShadow = currentTextShadowStyle;
+            refEl.style.textShadow = currentTextShadowStyle;
+        }
+
+        function applyDimensions() {
+            const preset = document.getElementById('dim-preset').value;
+            const preview = document.getElementById('render-target');
+            if (preset === 'mobile') { preview.style.width = "360px"; preview.style.height = "640px"; }
+            else if (preset === 'sns') { preview.style.width = "450px"; preview.style.height = "450px"; }
+            else if (preset === 'pc') { preview.style.width = "640px"; preview.style.height = "360px"; }
+            requestAnimationFrame(fitPreviewToContainer);
+        }
+
+        function applyFont() {
+            const font = document.getElementById('font-preset').value;
+            document.getElementById('target-verse-text').style.fontFamily = font;
+        }
+
+        function applyTextSize() {
+            const sliderEl = document.getElementById('fontsize-slider');
+            const size = sliderEl.value;
+            document.getElementById('target-verse-text').style.fontSize = `${size}px`;
+            document.getElementById('target-verse-ref').style.fontSize = `${Math.max(11, Math.round((size - 8) * 0.75))}px`;
+            updatePillSliderFill(sliderEl, false);
+        }
+
+        function applyAlign() {
+            const align = document.getElementById('align-preset').value;
+            document.getElementById('render-target').style.textAlign = align;
+            const alignTarget = document.querySelector('.render-content');
+            if (align === 'left') alignTarget.style.alignItems = "flex-start";
+            else if (align === 'right') alignTarget.style.alignItems = "flex-end";
+            else alignTarget.style.alignItems = "center";
+        }
+
+        function triggerFileDownload(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            link.click();
+        }
+
+        function downloadCardImage() {
+            const originalTarget = document.getElementById('render-target');
+            const preset = document.getElementById('dim-preset').value;
+
+            let targetWidth = 1080;
+            let targetHeight = 1920;
+            if (preset === 'sns') { targetWidth = 1080; targetHeight = 1080; }
+            else if (preset === 'pc') { targetWidth = 1920; targetHeight = 1080; }
+
+            const offscreenContainer = document.createElement('div');
+            offscreenContainer.style.position = 'fixed';
+            offscreenContainer.style.top = '-9999px';
+            offscreenContainer.style.left = '-9999px';
+            offscreenContainer.style.width = `${targetWidth}px`;
+            offscreenContainer.style.height = `${targetHeight}px`;
+            document.body.appendChild(offscreenContainer);
+
+            const clone = originalTarget.cloneNode(true);
+            clone.style.width = `${targetWidth}px`;
+            clone.style.height = `${targetHeight}px`;
+            clone.style.padding = preset === 'pc' ? '80px 140px' : '90px 70px';
+            clone.style.transform = 'none';
+            clone.style.boxShadow = 'none';
+
+            const sizeRatio = targetWidth / parseInt(originalTarget.style.width || 360);
+            const originalFontSize = parseInt(document.getElementById('fontsize-slider').value);
+            const scaledFontSize = originalFontSize * sizeRatio * 0.95;
+
+            const cloneText = clone.querySelector('#target-verse-text');
+            const cloneRef = clone.querySelector('#target-verse-ref');
+
+            cloneText.style.fontSize = `${scaledFontSize}px`;
+            cloneRef.style.fontSize = `${Math.max(17, Math.round((scaledFontSize - 16) * 0.75))}px`;
+
+            offscreenContainer.appendChild(clone);
+
+            const refRaw = document.getElementById('target-verse-ref').innerText;
+            const refSafe = refRaw.replace(/\s+/g, '').replace(/[^가-힣a-zA-Z0-9_]/g, '');
+            const catSafe = document.getElementById('category-select').value;
+            const shortUid = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const downloadFilename = `BibleCard_${refSafe}_${catSafe}_${shortUid}.png`;
+
+            html2canvas(clone, {
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null,
+                width: targetWidth,
+                height: targetHeight,
+                scale: 1
+            }).then(async (canvas) => {
+                document.body.removeChild(offscreenContainer);
+
+                if (isRealMobileDevice() && typeof navigator.share === 'function' && typeof navigator.canShare === 'function') {
+                    canvas.toBlob(async (blob) => {
+                        if (!blob) {
+                            triggerFileDownload(canvas.toDataURL('image/png'), downloadFilename);
+                            return;
+                        }
+                        const file = new File([blob], downloadFilename, { type: 'image/png' });
+                        if (navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: `Bible Card - ${refRaw}`
+                                });
+                            } catch (err) {
+                                if (err && err.name !== 'AbortError') {
+                                    triggerFileDownload(canvas.toDataURL('image/png'), downloadFilename);
+                                }
+                            }
+                        } else {
+                            triggerFileDownload(canvas.toDataURL('image/png'), downloadFilename);
+                        }
+                    }, 'image/png');
+                } else {
+                    triggerFileDownload(canvas.toDataURL('image/png'), downloadFilename);
+                }
+            }).catch(err => {
+                console.error("Offscreen render failed:", err);
+                document.body.removeChild(offscreenContainer);
+                alert("Error saving card image.");
+            });
+        }
+
+        // ==========================================
+        // 히스토리 로직 및 초기화(지우기) 기능
+        // ==========================================
+        function addToHistory(abbr, chapter) {
+            const entry = `${abbr} ${chapter}`;
+            if (!readHistory.includes(entry)) {
+                readHistory.unshift(entry);
+                if (readHistory.length > 50) readHistory.pop();
+                localStorage.setItem('bible_history', JSON.stringify(readHistory));
+                renderHistory();
+            }
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            readHistory.forEach(item => {
+                const li = document.createElement('li');
+                const [a, c] = item.split(' ');
+                const names = bibleMap[a];
+                if (names) {
+                    li.innerText = uiLang === 'en'
+                        ? `${names.en} ${c === 'all' ? 'All' : 'Ch. ' + c}`
+                        : `${names.ko} ${c === 'all' ? '전체' : c + '장'}`;
+                    li.onclick = () => {
+                        createWindow(a, c, null, 'both');
+                        if (getLayoutMode() !== 'desktop') closeMobileMenu();
+                    };
+                    list.appendChild(li);
+                }
+            });
+        }
+
+        function clearHistory() {
+            if (confirm(t('confirmClear'))) {
+                readHistory = [];
+                localStorage.setItem('bible_history', JSON.stringify(readHistory));
+                renderHistory();
+            }
+        }
+
+        function exportData() {
+            let data = uiLang === 'en' ? "Bible Study History:\n\n" : "성경 읽기 기록:\n\n";
+            readHistory.forEach(item => {
+                const [a, c] = item.split(' ');
+                const names = bibleMap[a];
+                if (names) {
+                    data += `${names.ko} (${names.en}) ${c === 'all' ? 'All' : 'Ch.' + c}\n`;
+                }
+            });
+            const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Bible_Study_History.txt';
+            a.click();
+        }
+    </script>
+</body>
+</html>
