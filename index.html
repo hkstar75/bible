@@ -331,6 +331,300 @@
             width: 100%;
         }
 
+        /* 리딩창이 없을 때 빈 공간에 세련되게 표시되는 타이틀 */
+        #workspace-empty-state {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 28px;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            z-index: 5;
+            transition: opacity 0.25s ease;
+        }
+        #workspace-empty-state.hidden {
+            display: none;
+        }
+        .empty-state-emblem {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            box-shadow: var(--shadow-card);
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+
+        /* 메뉴 접힘 + 리딩창 없음 상태일 때 우측 상단에 표시되는 언어/다크모드 퀵 버튼 */
+        #empty-quick-utils {
+            position: absolute;
+            top: max(14px, env(safe-area-inset-top));
+            right: 16px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 28;
+            padding: 5px;
+            border-radius: 12px;
+            background: var(--dock-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-card);
+        }
+        #empty-quick-utils.visible {
+            display: flex;
+        }
+        .gallery-empty-hint {
+            grid-column: 1 / -1;
+            padding: 16px 12px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--panel-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+        .empty-state-title {
+            margin: 0;
+            font-size: clamp(24px, 3.4vw, 34px);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            color: var(--kor-color);
+            opacity: 0.24;
+        }
+        body.app-dark .empty-state-title {
+            opacity: 0.3;
+        }
+        .empty-state-divider {
+            width: 36px;
+            height: 2px;
+            border-radius: 99px;
+            background: var(--text-muted);
+            opacity: 0.25;
+            margin: 14px 0 12px 0;
+        }
+        .empty-state-sub {
+            margin: 0;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text-muted);
+            opacity: 0.62;
+            letter-spacing: -0.2px;
+            max-width: 320px;
+            line-height: 1.55;
+        }
+
+        /* 리딩창 없을 때 카드생성 버튼 클릭 시 뜨는 구절 선택 팝업 모달 */
+        #quick-select-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9500;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        #quick-select-modal.open {
+            display: flex;
+        }
+        .qsm-card {
+            width: 560px;
+            max-width: 100%;
+            max-height: 86dvh;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: qsmPopIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes qsmPopIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .qsm-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 18px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            flex-shrink: 0;
+        }
+        .qsm-header h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--kor-color);
+            letter-spacing: -0.3px;
+        }
+        .qsm-close-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            margin: 0;
+            border-radius: 9px;
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .qsm-close-btn:hover { background: var(--border-color); }
+        .qsm-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            flex: 1;
+            min-height: 0;
+        }
+        .qsm-search-results {
+            display: none;
+            margin-top: 6px;
+            max-height: 165px;
+            overflow-y: auto;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+        }
+        .qsm-history-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .qsm-chip {
+            width: auto;
+            margin: 0;
+            padding: 5px 10px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--panel-bg);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .qsm-chip:hover { background: var(--border-color); }
+        #qsm-verses-wrap {
+            display: none;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .qsm-verses-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 9px 12px;
+            background: var(--surface-soft);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--kor-color);
+        }
+        .qsm-lang-toggles {
+            display: flex;
+            gap: 5px;
+        }
+        .qsm-lang-btn {
+            width: auto;
+            height: 26px;
+            padding: 0 8px;
+            margin: 0;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            background: var(--border-color);
+            color: var(--text-muted);
+            border: 1px solid transparent;
+        }
+        .qsm-lang-btn.active {
+            background: var(--brand);
+            color: #ffffff;
+        }
+        #qsm-verses-list {
+            max-height: 240px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 8px 10px;
+        }
+        #qsm-verses-list.hide-kor .qsm-kor { display: none !important; }
+        #qsm-verses-list.hide-eng .qsm-eng { display: none !important; }
+        .qsm-verse-row {
+            display: flex;
+            gap: 9px;
+            align-items: flex-start;
+            padding: 8px 8px;
+            border-radius: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: background 0.14s ease;
+        }
+        .qsm-verse-row:last-child { border-bottom: none; }
+        .qsm-verse-row:hover { background: var(--surface-soft); }
+        .qsm-verse-row.selected { background: rgba(37, 99, 235, 0.12); }
+        .qsm-verse-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .qsm-kor { margin: 0; font-size: 14px; line-height: 1.6; color: var(--kor-color); word-break: keep-all; }
+        .qsm-eng { margin: 0; font-size: 13px; line-height: 1.48; color: var(--eng-color); font-style: italic; }
+        body.lang-en .qsm-eng { order: 1; color: var(--kor-color); font-style: normal; font-size: 14px; }
+        body.lang-en .qsm-kor { order: 2; color: var(--eng-color); font-size: 13px; }
+        .qsm-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 18px calc(14px + env(safe-area-inset-bottom)) 18px;
+            border-top: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            flex-shrink: 0;
+        }
+        #qsm-selected-count {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        #qsm-confirm-btn {
+            width: auto;
+            min-width: 150px;
+            padding: 11px 18px;
+            margin: 0;
+            border-radius: 10px;
+            background: var(--brand);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        #qsm-confirm-btn:hover { background: #1d4ed8; }
+
         #card-creator-section {
             display: flex;
             flex-direction: column;
@@ -639,7 +933,7 @@
 
         #error-banner {
             background: #ef4444; color: white; padding: 11px 14px;
-            text-align: center; font-weight: 600; font-size: 13px; display: none; z-index: 100;
+            text-align: center; font-weight: 600; font-size: 13px; display: block; z-index: 100;
         }
 
         #toast-msg {
@@ -875,20 +1169,12 @@
             flex-shrink: 0;
             min-height: 0;
         }
-
-        .settings-pane:has(#tab-panel-text.active-tab):has(#tcolor-custom.active) {
-                max-height: 74dvh;
-            }
-            .modal-body:has(#tab-panel-text.active-tab):has(#tcolor-custom.active) .preview-pane {
-                min-height: 140px;
-            }
         .settings-header {
             padding: 16px 52px 12px 20px;
             border-bottom: 1px solid var(--border-color);
             background: var(--panel-bg);
             flex-shrink: 0;
         }
-
         .settings-header h2 { margin: 0; font-size: 16px; font-weight: 700; color: var(--kor-color); letter-spacing: -0.3px; }
 
         .mobile-editor-tabs {
@@ -924,24 +1210,99 @@
             gap: 12px;
         }
         .editor-tab-panel { display: flex; flex-direction: column; gap: 11px; }
-        .settings-scroll h3 { margin: 4px 0 2px 0; font-size: 12.5px; color: var(--text-muted); font-weight: 700; letter-spacing: -0.2px; }
+        .settings-scroll h3 {
+            margin: 9px 0 3px 0;
+            font-size: 12.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+        .settings-scroll h3:first-child {
+            margin-top: 0;
+        }
+        .option-block {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
 
         .settings-footer {
-            padding: 12px 20px calc(14px + env(safe-area-inset-bottom)) 20px;
+            padding: 11px 20px calc(14px + env(safe-area-inset-bottom)) 20px;
             background: var(--panel-bg);
             border-top: 1px solid var(--border-color);
             flex-shrink: 0;
         }
+        .footer-action-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .footer-action-btn {
+            flex: 1;
+            margin: 0;
+            padding: 11px 12px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        #open-preview-btn {
+            background: var(--surface-soft);
+            color: var(--kor-color);
+            border: 1px solid var(--border-color);
+        }
+        #open-preview-btn:hover { background: var(--border-color); }
         #download-card-btn {
             background: var(--brand);
             color: #ffffff;
-            font-size: 14.5px;
-            font-weight: 700;
-            padding: 12px;
-            border-radius: 10px;
-            margin: 0;
+            border: none;
         }
         #download-card-btn:hover { background: #1d4ed8; }
+
+        /* 글자 쉐도우 한 줄 컨트롤 (없음 / 컬러 / 무채색 / 양방향 쉐도우 조절바) */
+        .shadow-inline-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 2px;
+        }
+        .shadow-mode-btn {
+            width: auto;
+            padding: 6px 7.5px;
+            margin: 0;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 7px;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            color: var(--kor-color);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .shadow-mode-btn.active {
+            border-color: var(--brand);
+            background: rgba(37, 99, 235, 0.14);
+            color: var(--brand);
+        }
+        .shadow-slider-wrap {
+            flex: 1;
+            min-width: 68px;
+            display: flex;
+            align-items: center;
+        }
+        .shadow-slider-wrap input[type="range"].pill-slider {
+            height: 24px;
+        }
+        .shadow-slider-wrap input[type="range"].pill-slider::-webkit-slider-runnable-track {
+            height: 5px;
+        }
+        .shadow-slider-wrap input[type="range"].pill-slider::-moz-range-track {
+            height: 5px;
+        }
 
         #render-target {
             position: relative;
@@ -1118,30 +1479,32 @@
             cursor: pointer;
         }
 
-        /* 1. 다크모드 섬네일 빈 공간 보정: 테마 변수 --thumb-grid-bg 사용 */
+        /* 섬네일 그리드: 이미지가 적어도 빈 공간이 어색한 회색 박스로 남지 않도록 투명 배경 + 개별 카드 처리 */
         .gallery-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 2px;
-            padding: 2px;
-            background: var(--thumb-grid-bg);
-            border-radius: 6px;
-            overflow: hidden;
+            gap: 6px;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            overflow: visible;
             margin-bottom: 2px;
         }
         .gallery-thumb {
             width: 100%;
             height: 58px;
-            border-radius: 2px;
+            border-radius: 7px;
             background-size: cover;
             background-position: center;
             cursor: pointer;
             position: relative;
-            transition: opacity 0.15s ease;
+            border: 1px solid var(--border-color);
+            transition: transform 0.14s ease, opacity 0.15s ease, box-shadow 0.15s ease;
         }
-        .gallery-thumb:hover { opacity: 0.9; }
+        .gallery-thumb:hover { opacity: 0.92; transform: translateY(-1px); }
         .gallery-thumb.active {
-            box-shadow: inset 0 0 0 2.5px #2563eb, inset 0 0 0 4px rgba(255, 255, 255, 0.9);
+            border-color: var(--brand);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35), inset 0 0 0 1.5px rgba(255, 255, 255, 0.92);
         }
         .gallery-nav {
             display: flex;
@@ -1331,7 +1694,12 @@
             }
             #sidebar.sheet-open { transform: translateY(0); }
             .sheet-handle-wrap { display: flex; }
-            .util-btn { height: 36px; min-width: 36px; border-radius: 10px; font-size: 13px; }
+            .sidebar-utils { gap: 12px; }
+            .util-btn { height: 36px; min-width: 38px; padding: 0 9px; border-radius: 10px; font-size: 13px; }
+            #workspace-empty-state { padding-bottom: 92px; }
+            #quick-select-modal { padding: 10px; }
+            .qsm-card { max-height: 90dvh; }
+            .qsm-body select, .qsm-body input[type="text"] { font-size: 16px; padding: 9px 11px; }
 
             #sidebar select,
             #sidebar input[type="text"],
@@ -1472,6 +1840,12 @@
                 border-left: none;
                 border-top: 1px solid var(--border-color);
             }
+            .settings-pane:has(#tab-panel-adjust.active-tab):has(#tcolor-custom.active) {
+                max-height: 74dvh;
+            }
+            .modal-body:has(#tab-panel-adjust.active-tab):has(#tcolor-custom.active) .preview-pane {
+                min-height: 140px;
+            }
             .settings-header { display: none; }
             .mobile-editor-tabs { display: flex; }
             .settings-scroll { flex: 0 1 auto; padding: 12px 16px 14px 16px; }
@@ -1480,7 +1854,8 @@
             .settings-pane select { font-size: 15px; }
 
             /* 모바일 터치 영역(36px) 확보 + 눈에 보이는 바는 슬림(8px / 16px) 유지 */
-            input[type="range"].pill-slider { height: 36px; }
+            input[type="range"].pill-slider { height: 34px; }
+            .shadow-slider-wrap input[type="range"].pill-slider { height: 32px; }
             input[type="range"].pill-slider::-webkit-slider-runnable-track { height: 8px; border-radius: 3px; }
             input[type="range"].pill-slider::-moz-range-track { height: 8px; border-radius: 3px; }
 
@@ -1594,7 +1969,96 @@
         <div id="error-banner">
             ⚠️ 경고: 현재 브라우저의 file:/// 경로로 접속하셨습니다. 터미널에서 'python -m http.server 8000' 실행 후 localhost:8000 으로 접속해주세요.
         </div>
+        <!-- 메뉴가 접혀있고 리딩창이 없을 때만 표시되는 언어/다크모드 버튼 -->
+        <div id="empty-quick-utils">
+            <button type="button" class="util-btn" id="empty-lang-btn" onclick="toggleUiLanguage()" title="언어 전환 (KR / EN)">EN</button>
+            <button type="button" class="util-btn" id="empty-dark-btn" onclick="toggleGlobalDarkMode()" title="전체 다크모드 전환">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+        <div id="workspace-empty-state">
+            <div class="empty-state-emblem" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- 책 가운데 위 작은 십자가 -->
+                    <line x1="12" y1="1.8" x2="12" y2="7.2"></line>
+                    <line x1="9.7" y1="4" x2="14.3" y2="4"></line>
+                    <!-- 미니멀 펼친 책 모양 -->
+                    <path d="M2.5 8.5h5.5a4 4 0 0 1 4 4v8.8a2.8 2.8 0 0 0-2.8-2.3H2.5z"></path>
+                    <path d="M21.5 8.5H16a4 4 0 0 0-4 4v8.8a2.8 2.8 0 0 1 2.8-2.3h6.7z"></path>
+                </svg>
+            </div>
+            <h1 class="empty-state-title" id="empty-state-title">성경 작업공간</h1>
+            <div class="empty-state-divider"></div>
+            <p class="empty-state-sub" id="empty-state-sub">말씀을 열어 읽거나, 나만의 말씀 카드를 만들어 보세요</p>
+        </div>
         <div id="windows-container"></div>
+    </div>
+
+    <!-- 리딩창 없을 때 카드생성 클릭 시 뜨는 구절 선택 팝업 -->
+    <div id="quick-select-modal" onclick="if(event.target === this) closeQuickSelectModal()">
+        <div class="qsm-card" role="dialog" aria-modal="true" aria-labelledby="qsm-title">
+            <div class="qsm-header">
+                <h2 id="qsm-title">말씀 구절 선택</h2>
+                <button type="button" class="qsm-close-btn" onclick="closeQuickSelectModal()" title="닫기 (ESC)">✕</button>
+            </div>
+            <div class="qsm-body">
+                <!-- 빠른 말씀 검색 -->
+                <div class="control-group">
+                    <h3 id="qsm-search-title">빠른 말씀 검색</h3>
+                    <div class="sidebar-search-box">
+                        <input type="text" id="qsm-search-input" enterkeyhint="search" autocomplete="off" placeholder="약어(창 1:1) 또는 단어..." onkeypress="if(event.key === 'Enter') executeQuickSearch()">
+                        <button type="button" id="qsm-search-btn" onclick="executeQuickSearch()">검색</button>
+                    </div>
+                    <div id="qsm-search-results" class="qsm-search-results"></div>
+                </div>
+
+                <!-- 권/장/절 선택 -->
+                <div class="control-group">
+                    <select id="qsm-book-select" onchange="onQsmBookChange()"></select>
+                    <div style="display: flex; gap: 8px;">
+                        <div class="num-spinner-wrap">
+                            <input type="text" inputmode="numeric" id="qsm-chapter-input" placeholder="장 (예: 1)" oninput="sanitizePositiveInt(this)" onkeydown="handleQsmSpinKey(event, 'qsm-chapter-input')">
+                            <div class="spin-btns">
+                                <button type="button" class="spin-btn" tabindex="-1" onclick="stepQsmInput('qsm-chapter-input', 1)">▲</button>
+                                <button type="button" class="spin-btn" tabindex="-1" onclick="stepQsmInput('qsm-chapter-input', -1)">▼</button>
+                            </div>
+                        </div>
+                        <div class="num-spinner-wrap">
+                            <input type="text" inputmode="numeric" id="qsm-verse-input" placeholder="절 (전체)" oninput="sanitizePositiveInt(this)" onkeydown="handleQsmSpinKey(event, 'qsm-verse-input')">
+                            <div class="spin-btns">
+                                <button type="button" class="spin-btn" tabindex="-1" onclick="stepQsmInput('qsm-verse-input', 1)">▲</button>
+                                <button type="button" class="spin-btn" tabindex="-1" onclick="stepQsmInput('qsm-verse-input', -1)">▼</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="qsm-load-btn" onclick="loadQuickPassageFromInputs()">구절 불러오기</button>
+                </div>
+
+                <!-- 최근 열어본 말씀 (있을 때만 표시) -->
+                <div class="control-group" id="qsm-history-group" style="display:none;">
+                    <h3 id="qsm-history-title">최근 열어본 말씀</h3>
+                    <div id="qsm-history-chips" class="qsm-history-chips"></div>
+                </div>
+
+                <!-- 불러온 구절 선택 리스트 -->
+                <div id="qsm-verses-wrap">
+                    <div class="qsm-verses-bar">
+                        <span id="qsm-verses-heading">창세기 1장</span>
+                        <div class="qsm-lang-toggles">
+                            <button type="button" class="qsm-lang-btn active" id="qsm-lang-kor" onclick="toggleQsmLang('kor')">한</button>
+                            <button type="button" class="qsm-lang-btn active" id="qsm-lang-eng" onclick="toggleQsmLang('eng')">EN</button>
+                        </div>
+                    </div>
+                    <div id="qsm-verses-list"></div>
+                </div>
+            </div>
+            <div class="qsm-footer">
+                <span id="qsm-selected-count">0개 선택됨</span>
+                <button type="button" id="qsm-confirm-btn" onclick="confirmQuickSelection()">선택 완료</button>
+            </div>
+        </div>
     </div>
 
     <!-- 안내 토스트 팝업 -->
@@ -1656,29 +2120,35 @@
                     <h2 id="ui-editor-title">말씀 이미지 편집기</h2>
                 </div>
 
-                <!-- 모바일 전용 탭 바 -->
+                <!-- 모바일 전용 3탭 바 -->
                 <div class="mobile-editor-tabs">
                     <button type="button" class="editor-tab-btn active" id="tab-btn-bg" onclick="switchEditorTab('bg', this)">규격 · 배경</button>
-                    <button type="button" class="editor-tab-btn" id="tab-btn-adjust" onclick="switchEditorTab('adjust', this)">위치 · 밝기</button>
-                    <button type="button" class="editor-tab-btn" id="tab-btn-text" onclick="switchEditorTab('text', this)">글자 · 색상</button>
+                    <button type="button" class="editor-tab-btn" id="tab-btn-adjust" onclick="switchEditorTab('adjust', this)">위치 · 색상</button>
+                    <button type="button" class="editor-tab-btn" id="tab-btn-text" onclick="switchEditorTab('text', this)">글자옵션</button>
                 </div>
 
                 <div class="settings-scroll">
                     <!-- 탭 1: 규격 및 배경 -->
                     <div class="editor-tab-panel active-tab" id="tab-panel-bg">
-                        <h3 id="ui-dim-title">카드 규격 선택</h3>
-                        <select id="dim-preset" onchange="applyDimensions()">
-                            <option value="mobile" id="opt-dim-mobile">모바일 배경화면 (9:16)</option>
-                            <option value="sns" id="opt-dim-sns">SNS 정사각형 (1:1)</option>
-                            <option value="pc" id="opt-dim-pc">PC 배경화면 (16:9)</option>
-                        </select>
+                        <div class="option-block">
+                            <h3 id="ui-dim-title">카드 규격 선택</h3>
+                            <select id="dim-preset" onchange="applyDimensions()" style="margin-bottom:0;">
+                                <option value="mobile" id="opt-dim-mobile">모바일 배경화면 (9:16)</option>
+                                <option value="sns" id="opt-dim-sns">SNS 정사각형 (1:1)</option>
+                                <option value="pc" id="opt-dim-pc">PC 배경화면 (16:9)</option>
+                            </select>
+                        </div>
 
-                        <h3 id="ui-cat-title">배경 테마 선택</h3>
-                        <select id="category-select" onchange="loadCategoryGallery()">
-                            <option value="landscape" id="opt-cat-landscape">웅대한 랜드스케이프</option>
-                            <option value="tiny_life" id="opt-cat-tiny">생명력 있는 자연</option>
-                            <option value="color_palette" id="opt-cat-palette">단색 / 그라데이션 팔레트</option>
-                        </select>
+                        <div class="option-block">
+                            <h3 id="ui-cat-title">배경 테마 선택</h3>
+                            <select id="category-select" onchange="loadCategoryGallery()" style="margin-bottom:0;">
+                                <option value="landscape" id="opt-cat-landscape">웅대한 랜드스케이프</option>
+                                <option value="tiny_life" id="opt-cat-tiny">생명력 있는 자연</option>
+                                <option value="baroque" id="opt-cat-baroque">바로크 명화 스타일</option>
+                                <option value="ani" id="opt-cat-ani">애니 스타일</option>
+                                <option value="color_palette" id="opt-cat-palette">단색 / 그라데이션 팔레트</option>
+                            </select>
+                        </div>
 
                         <!-- 사진 카테고리 섬네일 -->
                         <div id="gallery-ui">
@@ -1706,7 +2176,7 @@
                         </div>
                     </div>
 
-                    <!-- 탭 2: 위치(드래그 안내 + 중앙 초기화) 및 밝기(슬림 바) -->
+                    <!-- 탭 2: 위치 · 색상 (위치, 배경 어두움, 글자 색상) -->
                     <div class="editor-tab-panel" id="tab-panel-adjust">
                         <div id="bg-position-ui">
                             <div class="bg-pos-info">
@@ -1716,59 +2186,78 @@
                             <button type="button" class="bg-pos-reset-btn" id="ui-pos-reset" onclick="resetBgPosition()">중앙 초기화</button>
                         </div>
 
-                        <div>
-                            <h3 style="margin-bottom:2px;">
+                        <div class="option-block">
+                            <h3>
                                 <span id="ui-bright-title">배경 어두움 조절</span>
                                 <span id="brightness-label" style="font-weight:normal; font-size:11.5px; color:var(--text-muted);">(원본)</span>
                             </h3>
                             <input type="range" class="pill-slider" id="brightness-slider" min="-60" max="65" value="0" oninput="updateBackgroundState()">
                         </div>
+
+                        <div class="option-block">
+                            <h3 id="ui-color-title">글자 색상</h3>
+                            <div class="text-color-btns">
+                                <button type="button" id="tcolor-white" class="active" onclick="setTextColorMode('white')">흰색</button>
+                                <button type="button" id="tcolor-black" onclick="setTextColorMode('black')">검정</button>
+                                <button type="button" id="tcolor-custom" onclick="setTextColorMode('custom')">컬러 조절 ▾</button>
+                            </div>
+                            <div id="custom-text-color-bar">
+                                <div class="color-bar-block">
+                                    <div class="color-bar-meta">
+                                        <span id="ui-spectrum-label">색상 스펙트럼</span>
+                                        <span id="custom-color-preview" style="font-weight:bold;">적용됨</span>
+                                    </div>
+                                    <input type="range" class="color-slider" id="text-hue-slider" min="0" max="100" value="34" oninput="applyCustomTextHue()">
+                                </div>
+                                <div class="color-bar-block">
+                                    <div class="color-bar-meta">
+                                        <span id="ui-tone-label">진하기 / 밝기</span>
+                                        <span id="tone-val-label">50%</span>
+                                    </div>
+                                    <input type="range" class="color-slider" id="text-light-slider" min="15" max="85" value="50" oninput="applyCustomTextHue()">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- 탭 3: 글자 및 색상 -->
+                    <!-- 탭 3: 글자옵션 (글자색상 제외 나머지 글자 옵션 + 쉐도우 한 줄 컨트롤) -->
                     <div class="editor-tab-panel" id="tab-panel-text">
-                        <h3 id="ui-font-title">글자 폰트 설정</h3>
-                        <select id="font-preset" onchange="applyFont()" style="margin-bottom:2px;"></select>
-
-                        <h3 id="ui-size-title">글자 크기 및 정렬</h3>
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <input type="range" class="pill-slider" id="fontsize-slider" min="14" max="46" value="20" oninput="applyTextSize()" style="flex:1;">
-                            <select id="align-preset" onchange="applyAlign()" style="width:120px; margin-bottom:0;">
-                                <option value="center" id="opt-align-center">가운데 정렬</option>
-                                <option value="left" id="opt-align-left">왼쪽 정렬</option>
-                                <option value="right" id="opt-align-right">오른쪽 정렬</option>
-                            </select>
+                        <div class="option-block">
+                            <h3 id="ui-font-title">글자 폰트 설정</h3>
+                            <select id="font-preset" onchange="applyFont()" style="margin-bottom:0;"></select>
                         </div>
 
-                        <h3 id="ui-color-title">글자 색상</h3>
-                        <div class="text-color-btns">
-                            <button type="button" id="tcolor-white" class="active" onclick="setTextColorMode('white')">흰색</button>
-                            <button type="button" id="tcolor-black" onclick="setTextColorMode('black')">검정</button>
-                            <button type="button" id="tcolor-custom" onclick="setTextColorMode('custom')">컬러 조절 ▾</button>
-                        </div>
-                        <div id="custom-text-color-bar">
-                            <div class="color-bar-block">
-                                <div class="color-bar-meta">
-                                    <span id="ui-spectrum-label">색상 스펙트럼</span>
-                                    <span id="custom-color-preview" style="font-weight:bold;">적용됨</span>
-                                </div>
-                                <input type="range" class="color-slider" id="text-hue-slider" min="0" max="100" value="34" oninput="applyCustomTextHue()">
-                            </div>
-                            <div class="color-bar-block">
-                                <div class="color-bar-meta">
-                                    <span id="ui-tone-label">진하기 / 밝기</span>
-                                    <span id="tone-val-label">55%</span>
-                                </div>
-                                <input type="range" class="color-slider" id="text-light-slider" min="0" max="100" value="55" oninput="applyCustomTextHue()">
+                        <div class="option-block">
+                            <h3 id="ui-size-title">글자 크기 및 정렬</h3>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="range" class="pill-slider" id="fontsize-slider" min="14" max="46" value="20" oninput="applyTextSize()" style="flex:1;">
+                                <select id="align-preset" onchange="applyAlign()" style="width:120px; margin-bottom:0;">
+                                    <option value="center" id="opt-align-center">가운데 정렬</option>
+                                    <option value="left" id="opt-align-left">왼쪽 정렬</option>
+                                    <option value="right" id="opt-align-right">오른쪽 정렬</option>
+                                </select>
                             </div>
                         </div>
 
-
+                        <div class="option-block">
+                            <h3 id="ui-shadow-title">글자 쉐도우</h3>
+                            <div class="shadow-inline-row">
+                                <button type="button" class="shadow-mode-btn" id="shadow-btn-none" onclick="setShadowMode('none')">없음</button>
+                                <button type="button" class="shadow-mode-btn active" id="shadow-btn-color" onclick="setShadowMode('color')">컬러</button>
+                                <button type="button" class="shadow-mode-btn" id="shadow-btn-mono" onclick="setShadowMode('mono')">무채색</button>
+                                <div class="shadow-slider-wrap">
+                                    <input type="range" class="pill-slider" id="shadow-strength-slider" min="-100" max="100" value="45" oninput="updateShadowEffect()">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="settings-footer">
-                    <button type="button" id="download-card-btn" onclick="downloadCardImage()">이미지로 저장하기</button>
+                    <div class="footer-action-row">
+                        <button type="button" class="footer-action-btn" id="open-preview-btn" onclick="togglePreviewFullscreen(true)">미리보기</button>
+                        <button type="button" class="footer-action-btn" id="download-card-btn" onclick="downloadCardImage()">저장하기</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1786,8 +2275,85 @@
             tiny_life: [
                 './image/tiny_life/tiny_life1.jpeg',
                 './image/tiny_life/tiny_life2.jpeg'
-            ]
+            ],
+            baroque: [],
+            ani: []
         };
+
+        const autoDiscoveredCategories = {
+            landscape: null,
+            tiny_life: null,
+            baroque: null,
+            ani: null
+        };
+
+        function checkImageExists(url, timeoutMs = 1500) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                let settled = false;
+                const timer = setTimeout(() => {
+                    if (!settled) {
+                        settled = true;
+                        img.src = '';
+                        resolve(false);
+                    }
+                }, timeoutMs);
+
+                img.onload = () => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timer);
+                        resolve(true);
+                    }
+                };
+                img.onerror = () => {
+                    if (!settled) {
+                        settled = true;
+                        clearTimeout(timer);
+                        resolve(false);
+                    }
+                };
+                img.src = url;
+            });
+        }
+
+        async function discoverSequentialCategoryImages(cat, maxScan = 40) {
+            if (Array.isArray(autoDiscoveredCategories[cat]) && autoDiscoveredCategories[cat].length > 0) {
+                return autoDiscoveredCategories[cat];
+            }
+
+            const exts = ['jpg', 'jpeg', 'webp', 'png'];
+            const found = [];
+
+            for (let idx = 1; idx <= maxScan; idx++) {
+                let matchedUrl = null;
+                for (const ext of exts) {
+                    const candidate = `./image/${cat}/${cat}${idx}.${ext}`;
+                    if (await checkImageExists(candidate)) {
+                        matchedUrl = candidate;
+                        break;
+                    }
+                }
+                if (matchedUrl) {
+                    found.push(matchedUrl);
+                } else {
+                    break;
+                }
+            }
+
+            if (found.length > 0) {
+                autoDiscoveredCategories[cat] = found;
+                return found;
+            }
+            return imageCategories[cat] || [];
+        }
+
+        function getActiveCategoryImageList(cat = activeCategory) {
+            if (Array.isArray(autoDiscoveredCategories[cat]) && autoDiscoveredCategories[cat].length > 0) {
+                return autoDiscoveredCategories[cat];
+            }
+            return imageCategories[cat] || [];
+        }
 
         // 2. 한/영 다국어 폰트 목록 (영문 모드에서 한글 완전 제거 + 영문 설명 제공)
         const fontOptions = [
@@ -1863,8 +2429,20 @@
                 dockCancel: '취소',
                 editorTitle: '말씀 이미지 편집기',
                 tabBg: '규격 · 배경',
-                tabAdjust: '위치 · 밝기',
-                tabText: '글자 · 색상',
+                tabAdjust: '위치 · 색상',
+                tabText: '글자옵션',
+                emptySub: '말씀을 열어 읽거나, 나만의 말씀 카드를 만들어 보세요',
+                qsmTitle: '말씀 구절 선택',
+                qsmLoadBtn: '구절 불러오기',
+                qsmConfirmBtn: '선택 완료',
+                qsmSelectedCount: (n) => `${n}개 선택됨`,
+                qsmChapterHint: '장 (예: 1)',
+                shadowTitle: '글자 쉐도우',
+                shadowNone: '없음',
+                shadowColor: '컬러',
+                shadowMono: '무채색',
+                previewBtn: '미리보기',
+                saveBtnShort: '저장하기',
                 dimTitle: '카드 규격 선택',
                 dimMobile: '모바일 배경화면 (9:16)',
                 dimSns: 'SNS 정사각형 (1:1)',
@@ -1872,7 +2450,10 @@
                 catTitle: '배경 테마 선택',
                 catLandscape: '웅대한 랜드스케이프',
                 catTiny: '생명력 있는 자연',
+                catBaroque: '바로크 명화 스타일',
+                catAni: '애니 스타일',
                 catPalette: '단색 / 그라데이션 팔레트',
+                emptyGalleryHint: (cat) => `./image/${cat}/${cat}1.jpg 형식으로 이미지를 추가해 주세요.`,
                 galleryLabel: '섬네일 탐색',
                 randomBtn: '랜덤',
                 palSolid: '선명한 단색',
@@ -1934,8 +2515,20 @@
                 dockCancel: 'Cancel',
                 editorTitle: 'Verse Card Editor',
                 tabBg: 'Size · BG',
-                tabAdjust: 'Pos · Dim',
-                tabText: 'Font · Color',
+                tabAdjust: 'Pos · Color',
+                tabText: 'Font Options',
+                emptySub: 'Open a passage to read, or create your own verse card',
+                qsmTitle: 'Select Verses',
+                qsmLoadBtn: 'Load Passage',
+                qsmConfirmBtn: 'Done',
+                qsmSelectedCount: (n) => `${n} selected`,
+                qsmChapterHint: 'Ch (e.g. 1)',
+                shadowTitle: 'Text Shadow',
+                shadowNone: 'Off',
+                shadowColor: 'Color',
+                shadowMono: 'Mono',
+                previewBtn: 'Preview',
+                saveBtnShort: 'Save',
                 dimTitle: 'Card Aspect Ratio',
                 dimMobile: 'Mobile Wallpaper (9:16)',
                 dimSns: 'SNS Square (1:1)',
@@ -1943,7 +2536,10 @@
                 catTitle: 'Background Theme',
                 catLandscape: 'Grand Landscape',
                 catTiny: 'Tiny Nature',
+                catBaroque: 'Baroque Fine Art',
+                catAni: 'Anime Style',
                 catPalette: 'Solid / Gradient Palette',
+                emptyGalleryHint: (cat) => `Add files like ./image/${cat}/${cat}1.jpg to use this theme.`,
                 galleryLabel: 'Thumbnails',
                 randomBtn: 'Random',
                 palSolid: 'Solid Colors',
@@ -1992,7 +2588,10 @@
         let selectedPaletteStyle = '#1e293b';
         let isSelectMode = false;
         let currentTextColor = '#ffffff';
-        let currentTextShadowStyle = '0 1px 4px rgba(0,0,0,0.35)';
+        let currentBaseRGB = [200, 215, 210];
+        let shadowMode = 'color';
+        let lastActiveShadowMode = 'color';
+        let currentTextShadowStyle = '0 1.2px 3.5px rgba(15, 35, 25, 0.55)';
         let currentPreviewScale = 1;
         let bgPosX = 50;
         let bgPosY = 50;
@@ -2057,9 +2656,14 @@
             const sunIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
             const moonIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
+            const emptyDarkBtn = document.getElementById('empty-dark-btn');
             if (globalBtn) {
                 globalBtn.classList.toggle('dark-active', isGlobalDark);
                 globalBtn.innerHTML = isGlobalDark ? sunIcon : moonIcon;
+            }
+            if (emptyDarkBtn) {
+                emptyDarkBtn.classList.toggle('dark-active', isGlobalDark);
+                emptyDarkBtn.innerHTML = isGlobalDark ? sunIcon : moonIcon;
             }
             if (railBtn) railBtn.innerHTML = isGlobalDark ? sunIcon : moonIcon;
 
@@ -2112,7 +2716,10 @@
             document.body.classList.toggle('lang-en', uiLang === 'en');
 
             const langBtn = document.getElementById('lang-toggle-btn');
-            if (langBtn) langBtn.innerText = uiLang === 'ko' ? 'EN' : 'KR';
+            const emptyLangBtn = document.getElementById('empty-lang-btn');
+            const nextLangLabel = uiLang === 'ko' ? 'EN' : 'KR';
+            if (langBtn) langBtn.innerText = nextLangLabel;
+            if (emptyLangBtn) emptyLangBtn.innerText = nextLangLabel;
 
             const setText = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
             setText('ui-app-title', t('appTitle'));
@@ -2139,6 +2746,27 @@
             setText('tab-btn-bg', t('tabBg'));
             setText('tab-btn-adjust', t('tabAdjust'));
             setText('tab-btn-text', t('tabText'));
+            setText('empty-state-title', t('appTitle'));
+            setText('empty-state-sub', t('emptySub'));
+            setText('qsm-title', t('qsmTitle'));
+            setText('qsm-search-title', t('searchTitle'));
+            setText('qsm-search-btn', t('searchBtn'));
+            setText('qsm-load-btn', t('qsmLoadBtn'));
+            setText('qsm-history-title', t('historyTitle'));
+            setText('qsm-confirm-btn', t('qsmConfirmBtn'));
+            const qsmSearchIn = document.getElementById('qsm-search-input');
+            if (qsmSearchIn) qsmSearchIn.placeholder = t('searchPlaceholder');
+            const qsmChIn = document.getElementById('qsm-chapter-input');
+            if (qsmChIn) qsmChIn.placeholder = t('qsmChapterHint');
+            const qsmVIn = document.getElementById('qsm-verse-input');
+            if (qsmVIn) qsmVIn.placeholder = t('versePlaceholder');
+            updateQsmSelectedCount();
+
+            setText('ui-shadow-title', t('shadowTitle'));
+            setText('shadow-btn-none', t('shadowNone'));
+            setText('shadow-btn-color', t('shadowColor'));
+            setText('shadow-btn-mono', t('shadowMono'));
+            setText('open-preview-btn', t('previewBtn'));
             setText('ui-dim-title', t('dimTitle'));
             setText('opt-dim-mobile', t('dimMobile'));
             setText('opt-dim-sns', t('dimSns'));
@@ -2146,6 +2774,8 @@
             setText('ui-cat-title', t('catTitle'));
             setText('opt-cat-landscape', t('catLandscape'));
             setText('opt-cat-tiny', t('catTiny'));
+            setText('opt-cat-baroque', t('catBaroque'));
+            setText('opt-cat-ani', t('catAni'));
             setText('opt-cat-palette', t('catPalette'));
             setText('ui-gallery-label', t('galleryLabel'));
             setText('ui-random-btn', t('randomBtn'));
@@ -2226,6 +2856,7 @@
         function updateAllPillSliderFills() {
             updatePillSliderFill(document.getElementById('brightness-slider'), true);
             updatePillSliderFill(document.getElementById('fontsize-slider'), false);
+            updatePillSliderFill(document.getElementById('shadow-strength-slider'), true);
             const hueSlider = document.getElementById('text-hue-slider');
             if (hueSlider) hueSlider.style.setProperty('--slider-bg', HUE_GRADIENT);
         }
@@ -2252,7 +2883,7 @@
             const btn = document.getElementById('download-card-btn');
             const fsSaveLabel = document.getElementById('fs-save-label');
             const canShareFiles = isRealMobileDevice() && typeof navigator.share === 'function' && typeof navigator.canShare === 'function';
-            if (btn) btn.innerText = canShareFiles ? t('shareImg') : t('saveImg');
+            if (btn) btn.innerText = t('saveBtnShort');
             if (fsSaveLabel) fsSaveLabel.innerText = canShareFiles ? t('fsShare') : t('fsSave');
         }
 
@@ -2288,6 +2919,8 @@
                 backdrop.classList.toggle('visible', isOpen);
             }
 
+            updateEmptyQuickUtils();
+
             if (document.getElementById('img-modal').style.display === 'flex') {
                 requestAnimationFrame(fitPreviewToContainer);
             }
@@ -2314,6 +2947,7 @@
                 const isOpen = sidebar.classList.toggle('drawer-open');
                 backdrop.classList.toggle('visible', isOpen);
             }
+            updateEmptyQuickUtils();
         }
 
         function openMobileSheet() {
@@ -2331,6 +2965,7 @@
                 sidebar.classList.add('drawer-open');
                 backdrop.classList.add('visible');
             }
+            updateEmptyQuickUtils();
         }
 
         function closeMobileMenu() {
@@ -2342,6 +2977,7 @@
             sidebar.classList.remove('sheet-open', 'drawer-open');
             backdrop.classList.remove('visible');
             dock.classList.remove('hidden');
+            updateEmptyQuickUtils();
         }
 
         function initSheetSwipeToClose() {
@@ -2463,8 +3099,8 @@
 
         window.onload = async () => {
             isSelectMode = false;
-            if (window.location.protocol === 'file:') {
-                document.getElementById('error-banner').style.display = 'block';
+            if (window.location.protocol !== 'file:') {
+                document.getElementById('error-banner').style.display = 'none';
             }
             populateDropdown();
             populateFontDropdown();
@@ -2476,6 +3112,7 @@
             applyUiLanguage();
             syncResponsiveUI();
             updateAllPillSliderFills();
+            updateWorkspaceEmptyState();
 
             const previewPane = document.getElementById('preview-pane');
             if (previewPane && typeof ResizeObserver !== 'undefined') {
@@ -2493,10 +3130,13 @@
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     const modal = document.getElementById('img-modal');
+                    const qsm = document.getElementById('quick-select-modal');
                     if (modal.classList.contains('preview-fullscreen')) {
                         togglePreviewFullscreen(false);
                     } else if (modal.style.display === 'flex') {
                         closeImageModal();
+                    } else if (qsm && qsm.classList.contains('open')) {
+                        closeQuickSelectModal();
                     }
                 }
             });
@@ -2510,16 +3150,21 @@
         };
 
         function populateDropdown() {
-            const select = document.getElementById('book-select');
-            select.innerHTML = '';
-            for (const [abbr, names] of Object.entries(bibleMap)) {
-                let opt = document.createElement('option');
-                opt.value = abbr;
-                opt.textContent = uiLang === 'en'
-                    ? `${names.en} (${names.ko})`
-                    : `[${abbr}] ${names.ko} (${names.en})`;
-                select.appendChild(opt);
-            }
+            const targets = [document.getElementById('book-select'), document.getElementById('qsm-book-select')];
+            targets.forEach(select => {
+                if (!select) return;
+                const prev = select.value || '창';
+                select.innerHTML = '';
+                for (const [abbr, names] of Object.entries(bibleMap)) {
+                    let opt = document.createElement('option');
+                    opt.value = abbr;
+                    opt.textContent = uiLang === 'en'
+                        ? `${names.en} (${names.ko})`
+                        : `[${abbr}] ${names.ko} (${names.en})`;
+                    select.appendChild(opt);
+                }
+                if (prev) select.value = prev;
+            });
         }
 
         function sanitizePositiveInt(inputEl) {
@@ -2823,7 +3468,7 @@
                 <div class="window-header">
                     <div class="window-header-top">
                         <span class="window-title-text">${windowTitle}</span>
-                        <button class="icon-btn close-btn mobile-only-close" onclick="document.getElementById('win-${id}').remove()" title="Close">✕</button>
+                        <button class="icon-btn close-btn mobile-only-close" onclick="closeReadingWindow(${id})" title="Close">✕</button>
                     </div>
                     <div class="header-actions">
                         <button class="icon-btn lang-btn active" id="btn-kor-${id}" onclick="toggleWindowLang(${id}, 'kor')" title="Korean">한</button>
@@ -2843,7 +3488,7 @@
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                             </svg>
                         </button>
-                        <button class="icon-btn close-btn desktop-only-close" onclick="document.getElementById('win-${id}').remove()" title="Close">✕</button>
+                        <button class="icon-btn close-btn desktop-only-close" onclick="closeReadingWindow(${id})" title="Close">✕</button>
                     </div>
                 </div>
                 <div class="window-content" id="content-${id}" data-zoom="1.0">
@@ -2851,6 +3496,7 @@
                 </div>
             `;
             container.appendChild(win);
+            updateWorkspaceEmptyState();
 
             const contentDiv = document.getElementById(`content-${id}`);
 
@@ -2966,7 +3612,47 @@
         // ==========================================
         // 글로벌 말씀 선택 모드
         // ==========================================
+        function updateEmptyQuickUtils() {
+            const utilsEl = document.getElementById('empty-quick-utils');
+            const sidebar = document.getElementById('sidebar');
+            if (!utilsEl || !sidebar) return;
+
+            const hasWindow = document.querySelectorAll('.reading-window').length > 0;
+            const mode = getLayoutMode();
+            let isMenuCollapsed = false;
+            if (mode === 'desktop') {
+                isMenuCollapsed = sidebar.classList.contains('collapsed');
+            } else if (mode === 'mobile-portrait') {
+                isMenuCollapsed = !sidebar.classList.contains('sheet-open');
+            } else {
+                isMenuCollapsed = !sidebar.classList.contains('drawer-open');
+            }
+
+            utilsEl.classList.toggle('visible', !hasWindow && isMenuCollapsed);
+        }
+
+        function updateWorkspaceEmptyState() {
+            const emptyEl = document.getElementById('workspace-empty-state');
+            if (!emptyEl) return;
+            const hasWindow = document.querySelectorAll('.reading-window').length > 0;
+            emptyEl.classList.toggle('hidden', hasWindow);
+            updateEmptyQuickUtils();
+        }
+
+        function closeReadingWindow(id) {
+            const win = document.getElementById(`win-${id}`);
+            if (win) win.remove();
+            updateWorkspaceEmptyState();
+        }
+
         function toggleGlobalSelectMode() {
+            const openWindows = document.querySelectorAll('.reading-window');
+            if (openWindows.length === 0) {
+                if (getLayoutMode() !== 'desktop') closeMobileMenu();
+                openQuickSelectModal();
+                return;
+            }
+
             isSelectMode = true;
             document.getElementById('start-select-btn').style.display = 'none';
             document.getElementById('select-actions').style.display = 'flex';
@@ -2979,6 +3665,355 @@
                 closeMobileMenu();
                 showToast(t('toastSelectHint'));
             }
+        }
+
+        // ==========================================
+        // 리딩창이 없을 때 구절 선택 팝업 모달 로직
+        // ==========================================
+        function openQuickSelectModal() {
+            const modal = document.getElementById('quick-select-modal');
+            if (!modal) return;
+            populateDropdown();
+            onQsmBookChange();
+            renderQsmHistoryChips();
+            document.getElementById('qsm-search-results').style.display = 'none';
+            modal.classList.add('open');
+            updateQsmSelectedCount();
+        }
+
+        function closeQuickSelectModal() {
+            const modal = document.getElementById('quick-select-modal');
+            if (modal) modal.classList.remove('open');
+        }
+
+        function onQsmBookChange() {
+            const abbr = document.getElementById('qsm-book-select').value;
+            const maxCh = maxChaptersMap[abbr] || 150;
+            document.getElementById('qsm-chapter-input').setAttribute('data-max', maxCh);
+        }
+
+        function stepQsmInput(inputId, delta) {
+            const inputEl = document.getElementById(inputId);
+            const raw = inputEl.value.trim();
+            const maxVal = inputEl.getAttribute('data-max') ? parseInt(inputEl.getAttribute('data-max'), 10) : null;
+            if (delta > 0) {
+                let num = raw === '' ? 1 : (parseInt(raw, 10) || 0) + 1;
+                if (maxVal && num > maxVal) num = maxVal;
+                inputEl.value = num.toString();
+            } else {
+                if (raw === '') return;
+                let num = parseInt(raw, 10);
+                inputEl.value = (isNaN(num) || num <= 1) ? '' : (num - 1).toString();
+            }
+        }
+
+        function handleQsmSpinKey(e, inputId) {
+            if (e.key === 'ArrowUp') { e.preventDefault(); stepQsmInput(inputId, 1); }
+            else if (e.key === 'ArrowDown') { e.preventDefault(); stepQsmInput(inputId, -1); }
+            else if (e.key === 'Enter') loadQuickPassageFromInputs();
+        }
+
+        function renderQsmHistoryChips() {
+            const group = document.getElementById('qsm-history-group');
+            const wrap = document.getElementById('qsm-history-chips');
+            if (!group || !wrap) return;
+            wrap.innerHTML = '';
+            const items = readHistory.slice(0, 8);
+            if (items.length === 0) {
+                group.style.display = 'none';
+                return;
+            }
+            group.style.display = 'block';
+            items.forEach(entry => {
+                const [abbr, ch] = entry.split(' ');
+                const names = bibleMap[abbr];
+                if (!names) return;
+                const chNum = ch === 'all' ? '1' : ch;
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'qsm-chip';
+                chip.innerText = uiLang === 'en' ? `${names.en} ${chNum}` : `${names.ko} ${chNum}장`;
+                chip.onclick = () => loadQuickPassage(abbr, chNum, null);
+                wrap.appendChild(chip);
+            });
+        }
+
+        async function executeQuickSearch() {
+            const query = document.getElementById('qsm-search-input').value.trim();
+            const resultsBox = document.getElementById('qsm-search-results');
+            if (query.length < 2) return;
+
+            resultsBox.innerHTML = `<div style="padding:10px; font-weight:bold; font-size:12.5px;">${t('searching')}</div>`;
+            resultsBox.style.display = 'block';
+
+            const match = query.match(/^([가-힣a-zA-Z]+)\s*(\d+):?(\d*)/);
+            if (match && bibleMap[match[1]]) {
+                const bookAbbr = match[1];
+                const chapter = match[2];
+                const verse = match[3] || null;
+                const names = bibleMap[bookAbbr];
+                resultsBox.innerHTML = '';
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                const label = uiLang === 'en'
+                    ? `${names.en} ${chapter}${verse ? ':' + verse : ''}`
+                    : `${names.ko} ${chapter}장 ${verse ? verse + '절' : ''}`;
+                div.innerHTML = `<b>${t('shortcut')}</b> ${label}`;
+                div.onclick = () => {
+                    resultsBox.style.display = 'none';
+                    loadQuickPassage(bookAbbr, chapter, verse);
+                };
+                resultsBox.appendChild(div);
+                return;
+            }
+
+            let results = [];
+            const isAsciiQuery = /^[a-zA-Z0-9\s]+$/.test(query);
+            const qLower = query.toLowerCase();
+
+            for (const [abbr, names] of Object.entries(bibleMap)) {
+                if (results.length > 25) break;
+                if (isAsciiQuery) {
+                    const enFile = `${ENG_DIR}/${names.en}.json`;
+                    if (!enBibleCache[names.en]) enBibleCache[names.en] = await fetchJson(enFile);
+                    const bookData = enBibleCache[names.en];
+                    if (bookData) {
+                        for (const ch of bookData.chapters) {
+                            for (const v of ch.verses) {
+                                if (v.text.toLowerCase().includes(qLower)) {
+                                    results.push({ abbr, chapter: ch.chapter, verse: v.verse, text: v.text, names });
+                                    if (results.length > 25) break;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const koFile = `${KOR_DIR}/${names.ko}.json`;
+                    if (!koBibleCache[names.ko]) koBibleCache[names.ko] = await fetchJson(koFile);
+                    const bookData = koBibleCache[names.ko];
+                    if (bookData) {
+                        for (const ch of bookData.chapters) {
+                            for (const v of ch.verses) {
+                                if (v.text.includes(query)) {
+                                    results.push({ abbr, chapter: ch.chapter, verse: v.verse, text: v.text, names });
+                                    if (results.length > 25) break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            resultsBox.innerHTML = '';
+            if (results.length === 0) {
+                resultsBox.innerHTML = `<div style="padding:10px; font-size:12.5px;">${t('noResults')}</div>`;
+            } else {
+                results.forEach(res => {
+                    const div = document.createElement('div');
+                    div.className = 'search-item';
+                    const bookLabel = uiLang === 'en' ? res.names.en : res.names.ko;
+                    div.innerHTML = `<b>${bookLabel} ${res.chapter}:${res.verse}</b><div class="search-preview">${res.text}</div>`;
+                    div.onclick = () => {
+                        resultsBox.style.display = 'none';
+                        loadQuickPassage(res.abbr, res.chapter, res.verse);
+                    };
+                    resultsBox.appendChild(div);
+                });
+            }
+        }
+
+        async function loadQuickPassageFromInputs() {
+            const abbr = document.getElementById('qsm-book-select').value;
+            const chRaw = document.getElementById('qsm-chapter-input').value.trim();
+            const vRaw = document.getElementById('qsm-verse-input').value.trim();
+            const chapter = chRaw === '' ? '1' : chRaw;
+            const verse = vRaw === '' ? null : vRaw;
+            await loadQuickPassage(abbr, chapter, verse);
+        }
+
+        async function loadQuickPassage(abbr, chapter, verseTarget = null) {
+            const names = bibleMap[abbr];
+            const bookDisplay = uiLang === 'en' ? names.en : names.ko;
+            const chNum = parseInt(chapter, 10);
+            const maxKnownCh = maxChaptersMap[abbr];
+
+            if (isNaN(chNum) || chNum < 1) { showToast(t('toastChapterMin')); return; }
+            if (maxKnownCh && chNum > maxKnownCh) { showToast(t('toastMaxChapter')(bookDisplay, maxKnownCh)); return; }
+
+            const koFile = `${KOR_DIR}/${names.ko}.json`;
+            if (!koBibleCache[names.ko]) koBibleCache[names.ko] = await fetchJson(koFile);
+            const koBookData = koBibleCache[names.ko];
+
+            const enFile = `${ENG_DIR}/${names.en}.json`;
+            if (!enBibleCache[names.en]) enBibleCache[names.en] = await fetchJson(enFile);
+            const enBookData = enBibleCache[names.en];
+
+            const refBook = koBookData || enBookData;
+            if (!refBook) { showToast('Data not found.'); return; }
+
+            const chData = refBook.chapters.find(c => parseInt(c.chapter, 10) === chNum);
+            if (!chData) { showToast(t('toastMaxChapter')(bookDisplay, refBook.chapters.length)); return; }
+
+            let targetVNum = null;
+            if (verseTarget !== null) {
+                targetVNum = parseInt(verseTarget, 10);
+                const exists = chData.verses.some(v => parseInt(v.verse, 10) === targetVNum);
+                if (isNaN(targetVNum) || targetVNum < 1 || !exists) {
+                    showToast(t('toastMaxVerse')(bookDisplay, chNum, chData.verses.length));
+                    return;
+                }
+            }
+
+            let koVerses = [], enVerses = [];
+            if (koBookData) {
+                const c = koBookData.chapters.find(x => parseInt(x.chapter, 10) === chNum);
+                if (c) koVerses = c.verses;
+            }
+            if (enBookData) {
+                const c = enBookData.chapters.find(x => parseInt(x.chapter, 10) === chNum);
+                if (c) enVerses = c.verses;
+            }
+
+            const verseNums = Array.from(new Set([...koVerses.map(v => parseInt(v.verse, 10)), ...enVerses.map(v => parseInt(v.verse, 10))]))
+                .filter(n => !isNaN(n)).sort((a, b) => a - b);
+
+            const wrap = document.getElementById('qsm-verses-wrap');
+            const heading = document.getElementById('qsm-verses-heading');
+            const list = document.getElementById('qsm-verses-list');
+
+            heading.innerText = uiLang === 'en' ? `${names.en} Ch. ${chNum}` : `${names.ko} ${chNum}장`;
+            list.innerHTML = '';
+            wrap.style.display = 'flex';
+
+            let scrollTargetRow = null;
+
+            verseNums.forEach(vNum => {
+                const koObj = koVerses.find(v => parseInt(v.verse, 10) === vNum);
+                const enObj = enVerses.find(v => parseInt(v.verse, 10) === vNum);
+                const rawKor = koObj ? koObj.text : '(텍스트 누락)';
+                const rawEng = enObj ? enObj.text : '(Text missing)';
+
+                const row = document.createElement('div');
+                row.className = 'qsm-verse-row';
+                row.setAttribute('data-abbr', abbr);
+                row.setAttribute('data-chnum', chNum);
+                row.setAttribute('data-vnum', vNum);
+                row.setAttribute('data-kor', rawKor);
+                row.setAttribute('data-eng', rawEng);
+
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.style.marginTop = '3px';
+                chk.style.flexShrink = '0';
+
+                const textWrap = document.createElement('div');
+                textWrap.className = 'qsm-verse-text';
+                textWrap.innerHTML = `
+                    <p class="qsm-kor"><span class="verse-num">${vNum}</span>${rawKor}</p>
+                    <p class="qsm-eng"><span class="verse-num">${vNum}</span>${rawEng}</p>
+                `;
+
+                const toggleRow = (checked) => {
+                    chk.checked = checked;
+                    row.classList.toggle('selected', checked);
+                    updateQsmSelectedCount();
+                };
+
+                chk.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleRow(chk.checked);
+                };
+                row.onclick = () => toggleRow(!chk.checked);
+
+                row.appendChild(chk);
+                row.appendChild(textWrap);
+                list.appendChild(row);
+
+                if (targetVNum !== null && vNum === targetVNum) {
+                    toggleRow(true);
+                    scrollTargetRow = row;
+                }
+            });
+
+            updateQsmSelectedCount();
+            if (scrollTargetRow) {
+                setTimeout(() => scrollTargetRow.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+            }
+        }
+
+        function toggleQsmLang(lang) {
+            const list = document.getElementById('qsm-verses-list');
+            const btn = document.getElementById(`qsm-lang-${lang}`);
+            if (!list || !btn) return;
+            const cls = lang === 'kor' ? 'hide-kor' : 'hide-eng';
+            const hidden = list.classList.toggle(cls);
+            btn.classList.toggle('active', !hidden);
+        }
+
+        function updateQsmSelectedCount() {
+            const el = document.getElementById('qsm-selected-count');
+            if (!el) return;
+            const cnt = document.querySelectorAll('#qsm-verses-list .qsm-verse-row.selected').length;
+            const fn = t('qsmSelectedCount');
+            el.innerText = typeof fn === 'function' ? fn(cnt) : `${cnt}`;
+        }
+
+        function confirmQuickSelection() {
+            const selectedRows = document.querySelectorAll('#qsm-verses-list .qsm-verse-row.selected');
+            if (selectedRows.length === 0) {
+                showToast(t('toastNoSelection'));
+                return;
+            }
+
+            const list = document.getElementById('qsm-verses-list');
+            const showKor = !list.classList.contains('hide-kor');
+            const showEng = !list.classList.contains('hide-eng');
+
+            let combinedCardsHTML = '';
+            let firstBookName = '';
+            let chapters = new Set();
+            let verseNumbers = [];
+
+            selectedRows.forEach(r => {
+                const abbr = r.getAttribute('data-abbr');
+                const chNum = parseInt(r.getAttribute('data-chnum'), 10);
+                const vNum = parseInt(r.getAttribute('data-vnum'), 10);
+                const rawKor = r.getAttribute('data-kor');
+                const rawEng = r.getAttribute('data-eng');
+                const names = bibleMap[abbr];
+
+                if (!firstBookName) firstBookName = uiLang === 'en' ? names.en : names.ko;
+                chapters.add(chNum);
+                verseNumbers.push(vNum);
+
+                const korHTML = showKor ? `
+                    <div class="card-line-group">
+                        <div>${rawKor}</div>
+                        <div class="card-inline-ref">${names.ko} ${chNum}장 ${vNum}절</div>
+                    </div>` : '';
+
+                const engHTML = showEng ? `
+                    <div class="card-line-group">
+                        <div>${uiLang === 'en' ? rawEng : `<i>${rawEng}</i>`}</div>
+                        <div class="card-inline-ref">${names.en} ${chNum}:${vNum}</div>
+                    </div>` : '';
+
+                let blockHTML = `<div class="card-verse-item">`;
+                blockHTML += uiLang === 'en' ? (engHTML + korHTML) : (korHTML + engHTML);
+                blockHTML += `</div>`;
+                combinedCardsHTML += blockHTML;
+            });
+
+            verseNumbers.sort((a, b) => a - b);
+            const verseRef = verseNumbers.length > 1 ? `${verseNumbers[0]}~${verseNumbers[verseNumbers.length - 1]}` : `${verseNumbers[0]}`;
+            const chArray = Array.from(chapters).sort((a, b) => a - b);
+            const chRef = chArray.length > 1 ? `${chArray[0]}~${chArray[chArray.length - 1]}` : `${chArray[0]}`;
+            const referenceForFilename = uiLang === 'en'
+                ? `${firstBookName}_${chRef}_${verseRef}`
+                : `${firstBookName} ${chRef}장 ${verseRef}절`;
+
+            closeQuickSelectModal();
+            openImageCreator(combinedCardsHTML, "", referenceForFilename);
         }
 
         function cancelGlobalSelection() {
@@ -3184,7 +4219,29 @@
             updateBackgroundState();
         }
 
-        function loadCategoryGallery() {
+        function renderGalleryThumbnails(cat, list) {
+            const container = document.getElementById('gallery-container');
+            if (!container || activeCategory !== cat) return;
+            container.innerHTML = '';
+            if (!list || list.length === 0) {
+                const hint = document.createElement('div');
+                hint.className = 'gallery-empty-hint';
+                const fn = t('emptyGalleryHint');
+                hint.innerText = typeof fn === 'function' ? fn(cat) : '';
+                container.appendChild(hint);
+                return;
+            }
+            list.forEach((imgSrc, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'gallery-thumb';
+                thumb.style.backgroundImage = `url('${imgSrc}')`;
+                thumb.onclick = () => selectGalleryImage(idx);
+                container.appendChild(thumb);
+            });
+            selectGalleryImage(Math.min(currentImageIndex, Math.max(0, list.length - 1)));
+        }
+
+        async function loadCategoryGallery() {
             const cat = document.getElementById('category-select').value;
             activeCategory = cat;
 
@@ -3211,23 +4268,20 @@
                 renderTarget.classList.add('draggable-bg');
 
                 currentImageIndex = 0;
-                const container = document.getElementById('gallery-container');
-                container.innerHTML = '';
-                const list = imageCategories[cat];
-                list.forEach((imgSrc, idx) => {
-                    const thumb = document.createElement('div');
-                    thumb.className = 'gallery-thumb';
-                    thumb.style.backgroundImage = `url('${imgSrc}')`;
-                    thumb.onclick = () => selectGalleryImage(idx);
-                    container.appendChild(thumb);
-                });
-                selectGalleryImage(0);
+                const initialList = getActiveCategoryImageList(cat);
+                renderGalleryThumbnails(cat, initialList);
+
+                const discovered = await discoverSequentialCategoryImages(cat);
+                if (activeCategory === cat && JSON.stringify(discovered) !== JSON.stringify(initialList)) {
+                    renderGalleryThumbnails(cat, discovered);
+                }
             }
             requestAnimationFrame(fitPreviewToContainer);
         }
 
         function selectGalleryImage(idx) {
-            const catImages = imageCategories[activeCategory];
+            const catImages = getActiveCategoryImageList(activeCategory);
+            if (!catImages || catImages.length === 0) return;
             if (idx >= catImages.length) currentImageIndex = 0;
             else if (idx < 0) currentImageIndex = catImages.length - 1;
             else currentImageIndex = idx;
@@ -3244,7 +4298,11 @@
         }
 
         function navigateGallery(direction) { selectGalleryImage(currentImageIndex + direction); }
-        function shufGallery() { selectGalleryImage(Math.floor(Math.random() * imageCategories[activeCategory].length)); }
+        function shufGallery() {
+            const catImages = getActiveCategoryImageList(activeCategory);
+            if (!catImages || catImages.length === 0) return;
+            selectGalleryImage(Math.floor(Math.random() * catImages.length));
+        }
 
         function updateBackgroundState() {
             const bgEl = document.getElementById('render-bg');
@@ -3274,13 +4332,96 @@
                 bgEl.style.backgroundImage = 'none';
                 bgEl.style.background = selectedPaletteStyle;
             } else {
-                const src = imageCategories[cat][currentImageIndex];
-                bgEl.style.background = 'none';
-                bgEl.style.backgroundImage = `url('${src}')`;
-                bgEl.style.backgroundSize = 'cover';
-                bgEl.style.backgroundRepeat = 'no-repeat';
-                bgEl.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+                const list = getActiveCategoryImageList(cat);
+                const safeIdx = Math.min(currentImageIndex, Math.max(0, list.length - 1));
+                const src = list[safeIdx];
+                if (src) {
+                    bgEl.style.background = 'none';
+                    bgEl.style.backgroundImage = `url('${src}')`;
+                    bgEl.style.backgroundSize = 'cover';
+                    bgEl.style.backgroundRepeat = 'no-repeat';
+                    bgEl.style.backgroundPosition = `${bgPosX}% ${bgPosY}%`;
+                }
             }
+        }
+
+        function syncShadowButtons() {
+            const btnNone = document.getElementById('shadow-btn-none');
+            const btnColor = document.getElementById('shadow-btn-color');
+            const btnMono = document.getElementById('shadow-btn-mono');
+            if (btnNone) btnNone.classList.toggle('active', shadowMode === 'none');
+            if (btnColor) btnColor.classList.toggle('active', shadowMode === 'color');
+            if (btnMono) btnMono.classList.toggle('active', shadowMode === 'mono');
+        }
+
+        function setShadowMode(mode) {
+            const sliderEl = document.getElementById('shadow-strength-slider');
+            if (mode === 'none') {
+                shadowMode = 'none';
+                if (sliderEl) sliderEl.value = 0;
+            } else {
+                shadowMode = mode === 'mono' ? 'mono' : 'color';
+                lastActiveShadowMode = shadowMode;
+                if (sliderEl && (parseFloat(sliderEl.value) || 0) === 0) {
+                    sliderEl.value = 45;
+                }
+            }
+            syncShadowButtons();
+            updateShadowEffect();
+        }
+
+        function updateShadowEffect() {
+            const sliderEl = document.getElementById('shadow-strength-slider');
+            const strength = sliderEl ? (parseFloat(sliderEl.value) || 0) : 45;
+            updatePillSliderFill(sliderEl, true);
+
+            if (strength === 0) {
+                shadowMode = 'none';
+                syncShadowButtons();
+                currentTextShadowStyle = 'none';
+                applyTextColorStyles();
+                return;
+            }
+
+            if (shadowMode === 'none') {
+                shadowMode = lastActiveShadowMode || 'color';
+                syncShadowButtons();
+            }
+
+            const ratio = Math.abs(strength) / 100;
+
+            if (strength > 0) {
+                // 우측(+): 글자 주변 좁은 범위 고정 + 더 강한 어두운 쉐이딩 허용
+                const alphaCore = Math.min(0.98, 0.24 + ratio * 0.74).toFixed(2);
+                const alphaTight = Math.min(0.96, 0.20 + ratio * 0.76).toFixed(2);
+                const alphaEdge = Math.min(0.82, 0.08 + ratio * 0.74).toFixed(2);
+
+                if (shadowMode === 'mono') {
+                    currentTextShadowStyle = `0 1px 2.2px rgba(8, 12, 24, ${alphaCore}), 0 1.5px 4.5px rgba(10, 15, 28, ${alphaTight}), 0 0 7.5px rgba(0, 0, 0, ${alphaEdge})`;
+                } else {
+                    const [r, g, b] = currentBaseRGB;
+                    const maxCh = Math.max(r, g, b);
+                    const satBoost = 1.45;
+                    const darkFactor = 0.18;
+                    const sr = Math.max(0, Math.min(255, Math.round((maxCh + (r - maxCh) * satBoost) * darkFactor)));
+                    const sg = Math.max(0, Math.min(255, Math.round((maxCh + (g - maxCh) * satBoost) * darkFactor)));
+                    const sb = Math.max(0, Math.min(255, Math.round((maxCh + (b - maxCh) * satBoost) * darkFactor)));
+                    currentTextShadowStyle = `0 1px 2.2px rgba(${sr}, ${sg}, ${sb}, ${alphaCore}), 0 1.5px 4.5px rgba(${sr}, ${sg}, ${sb}, ${alphaTight}), 0 0 7.5px rgba(${sr}, ${sg}, ${sb}, ${alphaEdge})`;
+                }
+            } else {
+                // 좌측(-): 글자 주변 좁은 범위 고정 + 밝아지는 라이트 쉐이딩/글로우 허용
+                const alphaCore = Math.min(0.95, 0.22 + ratio * 0.73).toFixed(2);
+                const alphaHalo = Math.min(0.85, 0.14 + ratio * 0.71).toFixed(2);
+
+                if (shadowMode === 'mono') {
+                    currentTextShadowStyle = `0 0 2.8px rgba(255, 255, 255, ${alphaCore}), 0 0 7.5px rgba(255, 255, 255, ${alphaHalo})`;
+                } else {
+                    const lightRGB = mixRGB(currentBaseRGB, [255, 255, 255], 0.76);
+                    currentTextShadowStyle = `0 0 2.8px rgba(${lightRGB[0]}, ${lightRGB[1]}, ${lightRGB[2]}, ${alphaCore}), 0 0 7.5px rgba(${lightRGB[0]}, ${lightRGB[1]}, ${lightRGB[2]}, ${alphaHalo})`;
+                }
+            }
+
+            applyTextColorStyles();
         }
 
         function setTextColorMode(mode) {
@@ -3296,12 +4437,12 @@
                 customBar.style.display = 'none';
                 if (mode === 'white') {
                     currentTextColor = '#ffffff';
-                    currentTextShadowStyle = '0 1px 4px rgba(0,0,0,0.42)';
+                    currentBaseRGB = [200, 215, 210];
                 } else {
                     currentTextColor = '#111827';
-                    currentTextShadowStyle = '0 1px 3px rgba(255,255,255,0.45)';
+                    currentBaseRGB = [30, 41, 59];
                 }
-                applyTextColorStyles();
+                updateShadowEffect();
             }
             requestAnimationFrame(fitPreviewToContainer);
         }
@@ -3341,24 +4482,28 @@
 
             hueSlider.style.setProperty('--slider-bg', HUE_GRADIENT);
 
+            const clampedTone = Math.max(15, Math.min(85, tonePos));
+            if (toneLabel) toneLabel.innerText = `${Math.round(clampedTone)}%`;
+
             const baseRGB = getSpectrumBaseRGB(specPos);
+            // 어둡기(15%)는 검정에 묻히지 않는 깊은 원색, 밝기(85%)는 흰색에 묻히지 않는 밝은 파스텔로 제한
             const deepRGB = [
-                Math.round(baseRGB[0] * 0.24 + 10),
-                Math.round(baseRGB[1] * 0.24 + 12),
-                Math.round(baseRGB[2] * 0.24 + 16)
+                Math.round(baseRGB[0] * 0.36 + 14),
+                Math.round(baseRGB[1] * 0.36 + 14),
+                Math.round(baseRGB[2] * 0.36 + 16)
             ];
-            const brightTintRGB = mixRGB(baseRGB, [255, 255, 255], 0.62);
+            const brightTintRGB = mixRGB(baseRGB, [255, 255, 255], 0.72);
 
             let finalRGB;
-            if (tonePos <= 55) finalRGB = mixRGB(deepRGB, baseRGB, tonePos / 55);
-            else finalRGB = mixRGB(baseRGB, brightTintRGB, (tonePos - 55) / 45);
+            if (clampedTone <= 50) finalRGB = mixRGB(deepRGB, baseRGB, (clampedTone - 15) / 35);
+            else finalRGB = mixRGB(baseRGB, brightTintRGB, (clampedTone - 50) / 35);
 
             currentTextColor = `rgb(${finalRGB[0]}, ${finalRGB[1]}, ${finalRGB[2]})`;
 
             const deepCss = `rgb(${deepRGB[0]}, ${deepRGB[1]}, ${deepRGB[2]})`;
             const baseCss = `rgb(${baseRGB[0]}, ${baseRGB[1]}, ${baseRGB[2]})`;
             const brightCss = `rgb(${brightTintRGB[0]}, ${brightTintRGB[1]}, ${brightTintRGB[2]})`;
-            lightSlider.style.setProperty('--slider-bg', `linear-gradient(to right, ${deepCss} 0%, ${baseCss} 55%, ${brightCss} 100%)`);
+            lightSlider.style.setProperty('--slider-bg', `linear-gradient(to right, ${deepCss} 0%, ${baseCss} 50%, ${brightCss} 100%)`);
 
             const luminance = (0.299 * finalRGB[0] + 0.587 * finalRGB[1] + 0.114 * finalRGB[2]) / 255;
             if (luminance >= 0.48) {
@@ -3369,13 +4514,14 @@
                 currentTextShadowStyle = `0 1px 3px rgba(255, 255, 255, ${shadowAlpha})`;
             }
 
+            currentBaseRGB = finalRGB;
             const previewLabel = document.getElementById('custom-color-preview');
             previewLabel.style.color = currentTextColor;
             previewLabel.style.background = luminance >= 0.48 ? '#1e293b' : '#f1f5f9';
             previewLabel.style.padding = '2px 8px';
             previewLabel.style.borderRadius = '5px';
 
-            applyTextColorStyles();
+            updateShadowEffect();
         }
 
         function applyTextColorStyles() {
